@@ -17,8 +17,20 @@ final class Request
     {
         $uri = $_SERVER['REQUEST_URI'] ?? '/';
         $path = parse_url($uri, PHP_URL_PATH);
+        if (!is_string($path)) {
+            return '/';
+        }
 
-        return is_string($path) ? rtrim($path, '/') ?: '/' : '/';
+        $normalized = rtrim($path, '/') ?: '/';
+        $scriptName = $_SERVER['SCRIPT_NAME'] ?? '';
+        $basePath = rtrim(str_replace('\\', '/', dirname((string) $scriptName)), '/');
+
+        if ($basePath !== '' && $basePath !== '/' && str_starts_with($normalized, $basePath)) {
+            $normalized = substr($normalized, strlen($basePath));
+            $normalized = $normalized === '' ? '/' : $normalized;
+        }
+
+        return $normalized;
     }
 
     public function query(string $key, mixed $default = null): mixed
