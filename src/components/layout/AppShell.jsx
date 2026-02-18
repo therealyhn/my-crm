@@ -6,10 +6,18 @@ function NavItem({ to, label }) {
     <NavLink
       to={to}
       className={({ isActive }) =>
-        `rounded px-2 py-1 text-sm ${isActive ? 'bg-slate-900 text-white' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'}`
+        `relative rounded px-2 py-1.5 text-sm font-medium transition ${isActive ? 'text-slate-900' : 'text-slate-600 hover:text-slate-900'}`
       }
     >
-      {label}
+      {({ isActive }) => (
+        <>
+          <span>{label}</span>
+          <span
+            className={`absolute bottom-0 left-0 h-0.5 w-full bg-accent transition-transform duration-200 ${isActive ? 'scale-x-100 animate-sweep' : 'scale-x-0'
+              }`}
+          />
+        </>
+      )}
     </NavLink>
   )
 }
@@ -18,27 +26,29 @@ export default function AppShell({ title, navItems = [], children }) {
   const { user, logout } = useAuth()
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <header className="border-b border-slate-200 bg-white">
+    <div className="min-h-screen bg-background">
+      <header className="border-b border-border bg-surface/90 backdrop-blur">
         <div className="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-3 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between gap-4">
             <div>
-              <p className="text-xs uppercase tracking-wide text-slate-500">Client CRM Portal</p>
-              <h1 className="text-lg font-semibold text-slate-900">{title}</h1>
+              <p className="text-label font-semibold uppercase text-muted">Jovan Ljušić CRM Portal</p>
+              <h1 className="font-display text-h3 text-text">{title}</h1>
             </div>
             <div className="flex items-center gap-3 text-sm">
-              <span className="rounded bg-slate-100 px-3 py-1 text-slate-700">
+              <span className="label-chip">
                 {user?.name} ({user?.role})
               </span>
               <button
                 type="button"
                 onClick={logout}
-                className="rounded border border-slate-300 px-3 py-1.5 text-slate-700 hover:bg-slate-100"
+                className="btn-ghost"
               >
                 Logout
               </button>
             </div>
           </div>
+
+          <div className="hairline" />
 
           {navItems.length > 0 ? (
             <nav className="flex flex-wrap gap-2">
