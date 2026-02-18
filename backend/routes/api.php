@@ -20,7 +20,7 @@ $router->get('/api/csrf-token', [SecurityController::class, 'csrfToken']);
 
 $router->post('/api/auth/login', [AuthController::class, 'login']);
 $router->post('/api/auth/logout', [AuthController::class, 'logout'], [AuthMiddleware::class, CsrfMiddleware::class]);
-$router->get('/api/auth/me', [AuthController::class, 'me'], [AuthMiddleware::class]);
+$router->get('/api/auth/me', [AuthController::class, 'me']);
 
 $router->get('/api/clients', [ClientController::class, 'index'], [AuthMiddleware::class]);
 $router->post('/api/clients', [ClientController::class, 'store'], [AuthMiddleware::class, CsrfMiddleware::class]);
