@@ -6,6 +6,7 @@ export const NAV_BY_ROLE = {
     { to: '/admin/clients', label: 'Clients' },
     { to: '/admin/projects', label: 'Projects' },
     { to: '/admin/tasks', label: 'Tasks' },
+    { to: '/admin/reports', label: 'Reports' },
   ],
   [USER_ROLES.CLIENT]: [
     { to: '/client/dashboard', label: 'Dashboard' },

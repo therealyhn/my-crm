@@ -25,6 +25,8 @@ final class Response
 
     public function send(): void
     {
+        $protocol = $_SERVER['SERVER_PROTOCOL'] ?? 'HTTP/1.1';
+        header(sprintf('%s %d', $protocol, $this->status), true, $this->status);
         http_response_code($this->status);
 
         foreach ($this->headers as $name => $value) {

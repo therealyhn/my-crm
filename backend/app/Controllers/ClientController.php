@@ -120,6 +120,10 @@ final class ClientController extends BaseController
         $defaultHourlyRate = ApiValidator::optionalDecimal($request->input('default_hourly_rate'), 'default_hourly_rate', 0) ?? 0;
         $isActive = ApiValidator::optionalBool($request->input('is_active'), 'is_active');
 
+        if ($email !== null && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            throw new HttpException(422, 'validation_error', 'email must be a valid email.');
+        }
+
         $stmt = Database::connection()->prepare(
             'UPDATE clients
              SET name = :name,

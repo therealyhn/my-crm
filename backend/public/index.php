@@ -14,10 +14,20 @@ require_once dirname(__DIR__) . '/bootstrap.php';
 ErrorHandler::register();
 
 $appConfig = Config::app();
-header('Access-Control-Allow-Origin: ' . $appConfig['cors_allowed_origin']);
-header('Access-Control-Allow-Credentials: true');
+$requestOrigin = $_SERVER['HTTP_ORIGIN'] ?? '';
+$allowedOrigins = $appConfig['cors_allowed_origins'] ?? [];
+
+if (is_string($requestOrigin) && $requestOrigin !== '' && is_array($allowedOrigins) && in_array($requestOrigin, $allowedOrigins, true)) {
+    header('Access-Control-Allow-Origin: ' . $requestOrigin);
+    header('Access-Control-Allow-Credentials: true');
+    header('Vary: Origin');
+}
+
 header('Access-Control-Allow-Headers: Content-Type, X-CSRF-Token');
 header('Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS');
+header('X-Content-Type-Options: nosniff');
+header('X-Frame-Options: DENY');
+header('Referrer-Policy: strict-origin-when-cross-origin');
 
 if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'OPTIONS') {
     Response::noContent()->send();

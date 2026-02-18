@@ -4,6 +4,7 @@ import { USER_ROLES } from './lib/constants/roles'
 import AdminClientsPage from './pages/admin/AdminClientsPage'
 import AdminDashboardPage from './pages/admin/AdminDashboardPage'
 import AdminProjectsPage from './pages/admin/AdminProjectsPage'
+import AdminReportsPage from './pages/admin/AdminReportsPage'
 import AdminTaskDetailPage from './pages/admin/AdminTaskDetailPage'
 import AdminTasksPage from './pages/admin/AdminTasksPage'
 import LoginPage from './pages/auth/LoginPage'
@@ -24,6 +25,7 @@ function App() {
         <Route path="/admin/projects" element={<AdminProjectsPage />} />
         <Route path="/admin/tasks" element={<AdminTasksPage />} />
         <Route path="/admin/tasks/:id" element={<AdminTaskDetailPage />} />
+        <Route path="/admin/reports" element={<AdminReportsPage />} />
       </Route>
 
       <Route element={<ProtectedRoute allowedRoles={[USER_ROLES.CLIENT]} />}>

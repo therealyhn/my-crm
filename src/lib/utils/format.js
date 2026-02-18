@@ -12,6 +12,6 @@ export function formatHours(value) {
 
 export function formatCurrency(value) {
   const amount = Number(value)
-  if (Number.isNaN(amount)) return '$0.00'
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount)
+  if (Number.isNaN(amount)) return '€0.00'
+  return new Intl.NumberFormat('en-IE', { style: 'currency', currency: 'EUR' }).format(amount)
 }

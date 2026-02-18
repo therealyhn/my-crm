@@ -8,15 +8,27 @@ final class Config
 {
     public static function app(): array
     {
+        $allowedOrigins = array_values(array_filter(array_map(
+            static fn (string $origin): string => trim($origin),
+            explode(',', Env::get('CORS_ALLOWED_ORIGIN', ''))
+        )));
+
         return [
             'env' => Env::get('APP_ENV', 'production'),
             'debug' => Env::bool('APP_DEBUG', false),
             'url' => Env::get('APP_URL', ''),
-            'cors_allowed_origin' => Env::get('CORS_ALLOWED_ORIGIN', '*'),
+            'frontend_url' => Env::get('FRONTEND_URL', ''),
+            'cors_allowed_origins' => $allowedOrigins,
             'session_cookie' => Env::get('SESSION_COOKIE', 'crm_session'),
             'session_secure' => Env::bool('SESSION_SECURE', false),
             'session_samesite' => Env::get('SESSION_SAMESITE', 'Lax'),
             'max_upload_mb' => Env::int('MAX_UPLOAD_MB', 10),
+            'mail_from_address' => Env::get('MAIL_FROM_ADDRESS', 'noreply@localhost'),
+            'mail_from_name' => Env::get('MAIL_FROM_NAME', 'Client CRM Portal'),
+            'notify_new_task_emails' => array_values(array_filter(array_map(
+                static fn (string $value): string => trim($value),
+                explode(',', Env::get('NOTIFY_NEW_TASK_EMAILS', ''))
+            ))),
         ];
     }
 
