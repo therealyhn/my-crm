@@ -1,4 +1,5 @@
 -- Drop in reverse dependency order
+DROP TABLE IF EXISTS notifications;
 DROP TABLE IF EXISTS time_logs;
 DROP TABLE IF EXISTS attachments;
 DROP TABLE IF EXISTS comments;

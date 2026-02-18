@@ -3,6 +3,8 @@
 ## Apply core schema
 
 Run `001_create_core_schema.sql` against your MySQL database (for example `client_crm`).
+Then run `002_create_notifications.sql`.
+Then run `003_add_client_project_meta_fields.sql`.
 
 ## Rollback core schema
 

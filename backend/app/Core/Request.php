@@ -85,6 +85,16 @@ final class Request
         return isset($_COOKIE[$name]) ? (string) $_COOKIE[$name] : $default;
     }
 
+    public function ip(): string
+    {
+        $ip = trim((string) ($_SERVER['REMOTE_ADDR'] ?? ''));
+        if ($ip === '') {
+            return '0.0.0.0';
+        }
+
+        return $ip;
+    }
+
     public function isStateChanging(): bool
     {
         return in_array($this->method(), ['POST', 'PUT', 'PATCH', 'DELETE'], true);

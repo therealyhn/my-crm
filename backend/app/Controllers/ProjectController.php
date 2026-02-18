@@ -30,7 +30,9 @@ final class ProjectController extends BaseController
             $bind[':client_id'] = ApiValidator::requiredInt($request->query('client_id'), 'client_id');
         }
 
-        $sql = 'SELECT p.id, p.client_id, p.name, p.description, p.status, p.start_date, p.due_date, p.created_at, p.updated_at,
+        $sql = 'SELECT p.id, p.client_id, p.name, p.description, p.domain_main, p.github_url,
+                       p.cms_org_name, p.cms_org_id, p.cms_project_name, p.cms_url, p.cms_app_id, p.notes,
+                       p.status, p.start_date, p.due_date, p.created_at, p.updated_at,
                        c.name AS client_name
                 FROM projects p
                 INNER JOIN clients c ON c.id = p.client_id';
@@ -58,7 +60,9 @@ final class ProjectController extends BaseController
         }
 
         $stmt = Database::connection()->prepare(
-            'SELECT p.id, p.client_id, p.name, p.description, p.status, p.start_date, p.due_date, p.created_at, p.updated_at,
+            'SELECT p.id, p.client_id, p.name, p.description, p.domain_main, p.github_url,
+                    p.cms_org_name, p.cms_org_id, p.cms_project_name, p.cms_url, p.cms_app_id, p.notes,
+                    p.status, p.start_date, p.due_date, p.created_at, p.updated_at,
                     c.name AS client_name
              FROM projects p
              INNER JOIN clients c ON c.id = p.client_id
@@ -84,18 +88,36 @@ final class ProjectController extends BaseController
         $clientId = ApiValidator::requiredInt($request->input('client_id'), 'client_id');
         $name = ApiValidator::requiredString($request->input('name'), 'name', 190);
         $description = ApiValidator::optionalString($request->input('description'), 'description', 65535);
+        $domainMain = ApiValidator::optionalString($request->input('domain_main'), 'domain_main', 255);
+        $githubUrl = ApiValidator::optionalString($request->input('github_url'), 'github_url', 500);
+        $cmsOrgName = ApiValidator::optionalString($request->input('cms_org_name'), 'cms_org_name', 190);
+        $cmsOrgId = ApiValidator::optionalString($request->input('cms_org_id'), 'cms_org_id', 120);
+        $cmsProjectName = ApiValidator::optionalString($request->input('cms_project_name'), 'cms_project_name', 190);
+        $cmsUrl = ApiValidator::optionalString($request->input('cms_url'), 'cms_url', 500);
+        $cmsAppId = ApiValidator::optionalString($request->input('cms_app_id'), 'cms_app_id', 190);
+        $notes = ApiValidator::optionalString($request->input('notes'), 'notes', 65535);
         $status = ApiValidator::optionalEnum($request->input('status'), 'status', ['active', 'on_hold', 'archived']) ?? 'active';
         $startDate = ApiValidator::optionalDate($request->input('start_date'), 'start_date');
         $dueDate = ApiValidator::optionalDate($request->input('due_date'), 'due_date');
 
         $stmt = Database::connection()->prepare(
-            'INSERT INTO projects (client_id, name, description, status, start_date, due_date)
-             VALUES (:client_id, :name, :description, :status, :start_date, :due_date)'
+            'INSERT INTO projects
+                (client_id, name, description, domain_main, github_url, cms_org_name, cms_org_id, cms_project_name, cms_url, cms_app_id, notes, status, start_date, due_date)
+             VALUES
+                (:client_id, :name, :description, :domain_main, :github_url, :cms_org_name, :cms_org_id, :cms_project_name, :cms_url, :cms_app_id, :notes, :status, :start_date, :due_date)'
         );
         $stmt->execute([
             ':client_id' => $clientId,
             ':name' => $name,
             ':description' => $description,
+            ':domain_main' => $domainMain,
+            ':github_url' => $githubUrl,
+            ':cms_org_name' => $cmsOrgName,
+            ':cms_org_id' => $cmsOrgId,
+            ':cms_project_name' => $cmsProjectName,
+            ':cms_url' => $cmsUrl,
+            ':cms_app_id' => $cmsAppId,
+            ':notes' => $notes,
             ':status' => $status,
             ':start_date' => $startDate,
             ':due_date' => $dueDate,
@@ -113,6 +135,14 @@ final class ProjectController extends BaseController
         $clientId = ApiValidator::requiredInt($request->input('client_id'), 'client_id');
         $name = ApiValidator::requiredString($request->input('name'), 'name', 190);
         $description = ApiValidator::optionalString($request->input('description'), 'description', 65535);
+        $domainMain = ApiValidator::optionalString($request->input('domain_main'), 'domain_main', 255);
+        $githubUrl = ApiValidator::optionalString($request->input('github_url'), 'github_url', 500);
+        $cmsOrgName = ApiValidator::optionalString($request->input('cms_org_name'), 'cms_org_name', 190);
+        $cmsOrgId = ApiValidator::optionalString($request->input('cms_org_id'), 'cms_org_id', 120);
+        $cmsProjectName = ApiValidator::optionalString($request->input('cms_project_name'), 'cms_project_name', 190);
+        $cmsUrl = ApiValidator::optionalString($request->input('cms_url'), 'cms_url', 500);
+        $cmsAppId = ApiValidator::optionalString($request->input('cms_app_id'), 'cms_app_id', 190);
+        $notes = ApiValidator::optionalString($request->input('notes'), 'notes', 65535);
         $status = ApiValidator::optionalEnum($request->input('status'), 'status', ['active', 'on_hold', 'archived']) ?? 'active';
         $startDate = ApiValidator::optionalDate($request->input('start_date'), 'start_date');
         $dueDate = ApiValidator::optionalDate($request->input('due_date'), 'due_date');
@@ -122,6 +152,14 @@ final class ProjectController extends BaseController
              SET client_id = :client_id,
                  name = :name,
                  description = :description,
+                 domain_main = :domain_main,
+                 github_url = :github_url,
+                 cms_org_name = :cms_org_name,
+                 cms_org_id = :cms_org_id,
+                 cms_project_name = :cms_project_name,
+                 cms_url = :cms_url,
+                 cms_app_id = :cms_app_id,
+                 notes = :notes,
                  status = :status,
                  start_date = :start_date,
                  due_date = :due_date
@@ -132,6 +170,14 @@ final class ProjectController extends BaseController
             ':client_id' => $clientId,
             ':name' => $name,
             ':description' => $description,
+            ':domain_main' => $domainMain,
+            ':github_url' => $githubUrl,
+            ':cms_org_name' => $cmsOrgName,
+            ':cms_org_id' => $cmsOrgId,
+            ':cms_project_name' => $cmsProjectName,
+            ':cms_url' => $cmsUrl,
+            ':cms_app_id' => $cmsAppId,
+            ':notes' => $notes,
             ':status' => $status,
             ':start_date' => $startDate,
             ':due_date' => $dueDate,

@@ -9,8 +9,10 @@ use App\Core\HttpException;
 use App\Core\Request;
 use App\Core\Response;
 use App\Policies\TaskPolicy;
+use App\Services\NotificationService;
 use App\Validators\ApiValidator;
 use PDO;
+use Throwable;
 
 final class TimeLogController extends BaseController
 {
@@ -61,6 +63,20 @@ final class TimeLogController extends BaseController
             ':minutes' => $minutes,
             ':note' => $note,
         ]);
+
+        if (($user['role'] ?? '') === 'admin') {
+            try {
+                (new NotificationService())->notifyClientUsersForTask(
+                    $taskId,
+                    (int) $user['id'],
+                    'timelog_added',
+                    'Work logged',
+                    'Admin logged work time on your task.'
+                );
+            } catch (Throwable) {
+                // Notification errors must not block time log creation.
+            }
+        }
 
         return Response::json(['data' => ['id' => (int) Database::connection()->lastInsertId()]], 201);
     }
@@ -121,7 +137,23 @@ final class TimeLogController extends BaseController
         $updateStmt = Database::connection()->prepare($sql);
         $updateStmt->execute($bind);
 
-        return Response::json(['data' => ['updated' => $updateStmt->rowCount() > 0]]);
+        $updated = $updateStmt->rowCount() > 0;
+
+        if ($updated && $isAdmin) {
+            try {
+                (new NotificationService())->notifyClientUsersForTask(
+                    (int) $timeLog['task_id'],
+                    (int) $user['id'],
+                    'timelog_updated',
+                    'Work log updated',
+                    'Admin updated a work log entry on your task.'
+                );
+            } catch (Throwable) {
+                // Notification errors must not block time log update.
+            }
+        }
+
+        return Response::json(['data' => ['updated' => $updated]]);
     }
 
     public function destroy(Request $request, array $params): Response
@@ -156,6 +188,22 @@ final class TimeLogController extends BaseController
         $deleteStmt = Database::connection()->prepare('DELETE FROM time_logs WHERE id = :id');
         $deleteStmt->execute([':id' => $id]);
 
-        return Response::json(['data' => ['deleted' => $deleteStmt->rowCount() > 0]]);
+        $deleted = $deleteStmt->rowCount() > 0;
+
+        if ($deleted && $isAdmin) {
+            try {
+                (new NotificationService())->notifyClientUsersForTask(
+                    (int) $timeLog['task_id'],
+                    (int) $user['id'],
+                    'timelog_deleted',
+                    'Work log removed',
+                    'Admin removed a work log entry from your task.'
+                );
+            } catch (Throwable) {
+                // Notification errors must not block time log deletion.
+            }
+        }
+
+        return Response::json(['data' => ['deleted' => $deleted]]);
     }
 }

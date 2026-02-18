@@ -10,8 +10,10 @@ use App\Core\HttpException;
 use App\Core\Request;
 use App\Core\Response;
 use App\Policies\TaskPolicy;
+use App\Services\NotificationService;
 use App\Validators\ApiValidator;
 use PDO;
+use Throwable;
 
 final class AttachmentController extends BaseController
 {
@@ -115,6 +117,20 @@ final class AttachmentController extends BaseController
             ':size_bytes' => $size,
         ]);
 
+        if (($user['role'] ?? '') === 'admin') {
+            try {
+                (new NotificationService())->notifyClientUsersForTask(
+                    $taskId,
+                    (int) $user['id'],
+                    'attachment_added',
+                    'New attachment',
+                    'Admin uploaded a new attachment to your task.'
+                );
+            } catch (Throwable) {
+                // Notification errors must not block attachment upload.
+            }
+        }
+
         return Response::json(['data' => ['id' => (int) Database::connection()->lastInsertId()]], 201);
     }
 
@@ -197,6 +213,20 @@ final class AttachmentController extends BaseController
         $path = dirname(__DIR__, 2) . '/storage/uploads/' . $attachment['stored_name'];
         if (is_file($path)) {
             @unlink($path);
+        }
+
+        if ($deleteStmt->rowCount() > 0 && $isAdmin) {
+            try {
+                (new NotificationService())->notifyClientUsersForTask(
+                    (int) $attachment['task_id'],
+                    (int) $user['id'],
+                    'attachment_deleted',
+                    'Attachment removed',
+                    'Admin removed an attachment from your task.'
+                );
+            } catch (Throwable) {
+                // Notification errors must not block attachment deletion.
+            }
         }
 
         return Response::json(['data' => ['deleted' => $deleteStmt->rowCount() > 0]]);

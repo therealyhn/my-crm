@@ -7,6 +7,7 @@ use App\Controllers\AuthController;
 use App\Controllers\ClientController;
 use App\Controllers\CommentController;
 use App\Controllers\HealthController;
+use App\Controllers\NotificationController;
 use App\Controllers\ProjectController;
 use App\Controllers\ReportController;
 use App\Controllers\SecurityController;
@@ -54,3 +55,6 @@ $router->put('/api/timelogs/{id}', [TimeLogController::class, 'update'], [AuthMi
 $router->delete('/api/timelogs/{id}', [TimeLogController::class, 'destroy'], [AuthMiddleware::class, CsrfMiddleware::class]);
 
 $router->get('/api/reports/summary', [ReportController::class, 'summary'], [AuthMiddleware::class]);
+
+$router->get('/api/notifications', [NotificationController::class, 'index'], [AuthMiddleware::class]);
+$router->post('/api/notifications/read-all', [NotificationController::class, 'markAllRead'], [AuthMiddleware::class, CsrfMiddleware::class]);

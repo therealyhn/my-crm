@@ -9,8 +9,10 @@ use App\Core\HttpException;
 use App\Core\Request;
 use App\Core\Response;
 use App\Policies\TaskPolicy;
+use App\Services\NotificationService;
 use App\Validators\ApiValidator;
 use PDO;
+use Throwable;
 
 final class CommentController extends BaseController
 {
@@ -30,7 +32,7 @@ final class CommentController extends BaseController
              FROM comments c
              INNER JOIN users u ON u.id = c.user_id
              WHERE c.task_id = :task_id
-             ORDER BY c.created_at ASC'
+             ORDER BY c.created_at DESC'
         );
         $stmt->execute([':task_id' => $taskId]);
 
@@ -57,6 +59,20 @@ final class CommentController extends BaseController
             ':user_id' => (int) $user['id'],
             ':body' => $body,
         ]);
+
+        if (($user['role'] ?? '') === 'admin') {
+            try {
+                (new NotificationService())->notifyClientUsersForTask(
+                    $taskId,
+                    (int) $user['id'],
+                    'comment_added',
+                    'New admin comment',
+                    'Admin added a new comment to your task.'
+                );
+            } catch (Throwable) {
+                // Notification errors must not block comment creation.
+            }
+        }
 
         return Response::json(['data' => ['id' => (int) Database::connection()->lastInsertId()]], 201);
     }

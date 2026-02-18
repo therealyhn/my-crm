@@ -21,7 +21,10 @@ final class ClientController extends BaseController
         $this->ensureAdmin($user);
 
         $rows = Database::connection()->query(
-            'SELECT id, name, company_name, email, phone, default_hourly_rate, is_active, created_at, updated_at
+            'SELECT id, name, company_name, email, phone, instagram, domain_main,
+                    hosting_provider, hosting_panel_url, hosting_login, hosting_password,
+                    github_url, cms_org_name, cms_org_id, cms_project_name, cms_url, cms_app_id,
+                    notes, default_hourly_rate, is_active, created_at, updated_at
              FROM clients
              ORDER BY created_at DESC'
         )->fetchAll(PDO::FETCH_ASSOC);
@@ -39,6 +42,19 @@ final class ClientController extends BaseController
         $companyName = ApiValidator::optionalString($request->input('company_name'), 'company_name', 190);
         $email = ApiValidator::optionalString($request->input('email'), 'email', 190);
         $phone = ApiValidator::optionalString($request->input('phone'), 'phone', 50);
+        $instagram = ApiValidator::optionalString($request->input('instagram'), 'instagram', 120);
+        $domainMain = ApiValidator::optionalString($request->input('domain_main'), 'domain_main', 255);
+        $hostingProvider = ApiValidator::optionalString($request->input('hosting_provider'), 'hosting_provider', 120);
+        $hostingPanelUrl = ApiValidator::optionalString($request->input('hosting_panel_url'), 'hosting_panel_url', 500);
+        $hostingLogin = ApiValidator::optionalString($request->input('hosting_login'), 'hosting_login', 190);
+        $hostingPassword = ApiValidator::optionalString($request->input('hosting_password'), 'hosting_password', 255);
+        $githubUrl = ApiValidator::optionalString($request->input('github_url'), 'github_url', 500);
+        $cmsOrgName = ApiValidator::optionalString($request->input('cms_org_name'), 'cms_org_name', 190);
+        $cmsOrgId = ApiValidator::optionalString($request->input('cms_org_id'), 'cms_org_id', 120);
+        $cmsProjectName = ApiValidator::optionalString($request->input('cms_project_name'), 'cms_project_name', 190);
+        $cmsUrl = ApiValidator::optionalString($request->input('cms_url'), 'cms_url', 500);
+        $cmsAppId = ApiValidator::optionalString($request->input('cms_app_id'), 'cms_app_id', 190);
+        $notes = ApiValidator::optionalString($request->input('notes'), 'notes', 65535);
         $defaultHourlyRate = ApiValidator::optionalDecimal($request->input('default_hourly_rate'), 'default_hourly_rate', 0) ?? 0;
         $isActive = ApiValidator::optionalBool($request->input('is_active'), 'is_active');
         $loginEmail = ApiValidator::requiredString($request->input('login_email'), 'login_email', 190);
@@ -68,14 +84,37 @@ final class ClientController extends BaseController
             }
 
             $stmt = $pdo->prepare(
-                'INSERT INTO clients (name, company_name, email, phone, default_hourly_rate, is_active)
-                 VALUES (:name, :company_name, :email, :phone, :default_hourly_rate, :is_active)'
+                'INSERT INTO clients (
+                    name, company_name, email, phone, instagram, domain_main,
+                    hosting_provider, hosting_panel_url, hosting_login, hosting_password,
+                    github_url, cms_org_name, cms_org_id, cms_project_name, cms_url, cms_app_id, notes,
+                    default_hourly_rate, is_active
+                 )
+                 VALUES (
+                    :name, :company_name, :email, :phone, :instagram, :domain_main,
+                    :hosting_provider, :hosting_panel_url, :hosting_login, :hosting_password,
+                    :github_url, :cms_org_name, :cms_org_id, :cms_project_name, :cms_url, :cms_app_id, :notes,
+                    :default_hourly_rate, :is_active
+                 )'
             );
             $stmt->execute([
                 ':name' => $name,
                 ':company_name' => $companyName,
                 ':email' => $email,
                 ':phone' => $phone,
+                ':instagram' => $instagram,
+                ':domain_main' => $domainMain,
+                ':hosting_provider' => $hostingProvider,
+                ':hosting_panel_url' => $hostingPanelUrl,
+                ':hosting_login' => $hostingLogin,
+                ':hosting_password' => $hostingPassword,
+                ':github_url' => $githubUrl,
+                ':cms_org_name' => $cmsOrgName,
+                ':cms_org_id' => $cmsOrgId,
+                ':cms_project_name' => $cmsProjectName,
+                ':cms_url' => $cmsUrl,
+                ':cms_app_id' => $cmsAppId,
+                ':notes' => $notes,
                 ':default_hourly_rate' => number_format($defaultHourlyRate, 2, '.', ''),
                 ':is_active' => $isActive === null ? 1 : ($isActive ? 1 : 0),
             ]);
@@ -117,6 +156,19 @@ final class ClientController extends BaseController
         $companyName = ApiValidator::optionalString($request->input('company_name'), 'company_name', 190);
         $email = ApiValidator::optionalString($request->input('email'), 'email', 190);
         $phone = ApiValidator::optionalString($request->input('phone'), 'phone', 50);
+        $instagram = ApiValidator::optionalString($request->input('instagram'), 'instagram', 120);
+        $domainMain = ApiValidator::optionalString($request->input('domain_main'), 'domain_main', 255);
+        $hostingProvider = ApiValidator::optionalString($request->input('hosting_provider'), 'hosting_provider', 120);
+        $hostingPanelUrl = ApiValidator::optionalString($request->input('hosting_panel_url'), 'hosting_panel_url', 500);
+        $hostingLogin = ApiValidator::optionalString($request->input('hosting_login'), 'hosting_login', 190);
+        $hostingPassword = ApiValidator::optionalString($request->input('hosting_password'), 'hosting_password', 255);
+        $githubUrl = ApiValidator::optionalString($request->input('github_url'), 'github_url', 500);
+        $cmsOrgName = ApiValidator::optionalString($request->input('cms_org_name'), 'cms_org_name', 190);
+        $cmsOrgId = ApiValidator::optionalString($request->input('cms_org_id'), 'cms_org_id', 120);
+        $cmsProjectName = ApiValidator::optionalString($request->input('cms_project_name'), 'cms_project_name', 190);
+        $cmsUrl = ApiValidator::optionalString($request->input('cms_url'), 'cms_url', 500);
+        $cmsAppId = ApiValidator::optionalString($request->input('cms_app_id'), 'cms_app_id', 190);
+        $notes = ApiValidator::optionalString($request->input('notes'), 'notes', 65535);
         $defaultHourlyRate = ApiValidator::optionalDecimal($request->input('default_hourly_rate'), 'default_hourly_rate', 0) ?? 0;
         $isActive = ApiValidator::optionalBool($request->input('is_active'), 'is_active');
 
@@ -130,6 +182,19 @@ final class ClientController extends BaseController
                  company_name = :company_name,
                  email = :email,
                  phone = :phone,
+                 instagram = :instagram,
+                 domain_main = :domain_main,
+                 hosting_provider = :hosting_provider,
+                 hosting_panel_url = :hosting_panel_url,
+                 hosting_login = :hosting_login,
+                 hosting_password = :hosting_password,
+                 github_url = :github_url,
+                 cms_org_name = :cms_org_name,
+                 cms_org_id = :cms_org_id,
+                 cms_project_name = :cms_project_name,
+                 cms_url = :cms_url,
+                 cms_app_id = :cms_app_id,
+                 notes = :notes,
                  default_hourly_rate = :default_hourly_rate,
                  is_active = :is_active
              WHERE id = :id'
@@ -140,6 +205,19 @@ final class ClientController extends BaseController
             ':company_name' => $companyName,
             ':email' => $email,
             ':phone' => $phone,
+            ':instagram' => $instagram,
+            ':domain_main' => $domainMain,
+            ':hosting_provider' => $hostingProvider,
+            ':hosting_panel_url' => $hostingPanelUrl,
+            ':hosting_login' => $hostingLogin,
+            ':hosting_password' => $hostingPassword,
+            ':github_url' => $githubUrl,
+            ':cms_org_name' => $cmsOrgName,
+            ':cms_org_id' => $cmsOrgId,
+            ':cms_project_name' => $cmsProjectName,
+            ':cms_url' => $cmsUrl,
+            ':cms_app_id' => $cmsAppId,
+            ':notes' => $notes,
             ':default_hourly_rate' => number_format($defaultHourlyRate, 2, '.', ''),
             ':is_active' => $isActive === null ? 1 : ($isActive ? 1 : 0),
         ]);

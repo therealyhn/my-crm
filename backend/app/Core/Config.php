@@ -29,6 +29,9 @@ final class Config
                 static fn (string $value): string => trim($value),
                 explode(',', Env::get('NOTIFY_NEW_TASK_EMAILS', ''))
             ))),
+            'auth_login_window_seconds' => Env::int('AUTH_LOGIN_WINDOW_SECONDS', 900),
+            'auth_login_max_attempts' => Env::int('AUTH_LOGIN_MAX_ATTEMPTS', 5),
+            'auth_login_lockout_seconds' => Env::int('AUTH_LOGIN_LOCKOUT_SECONDS', 900),
         ];
     }
 

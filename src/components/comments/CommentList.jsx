@@ -11,7 +11,7 @@ export default function CommentList({ comments }) {
         <li key={comment.id} className="rounded border border-slate-200 p-3">
           <p className="text-sm text-slate-800">{comment.body}</p>
           <p className="mt-1 text-xs text-slate-500">
-            {comment.author_name || 'User'} ({comment.author_role || 'user'}) � {formatDate(comment.created_at)}
+            {comment.author_name || 'User'} ({comment.author_role || 'user'}) - {formatDate(comment.created_at)}
           </p>
         </li>
       ))}

@@ -37,6 +37,26 @@ final class Response
             return;
         }
 
-        echo json_encode($this->body, JSON_UNESCAPED_SLASHES);
+        $contentType = '';
+        foreach ($this->headers as $name => $value) {
+            if (strtolower((string) $name) === 'content-type') {
+                $contentType = strtolower((string) $value);
+                break;
+            }
+        }
+
+        if (str_contains($contentType, 'application/json')) {
+            echo json_encode($this->body, JSON_UNESCAPED_SLASHES);
+            return;
+        }
+
+        if (is_string($this->body)) {
+            echo $this->body;
+            return;
+        }
+
+        if ($this->body !== null) {
+            echo (string) $this->body;
+        }
     }
 }

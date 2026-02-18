@@ -151,6 +151,8 @@ export default function AdminTaskDetailPage() {
           <Card title={task.title}>
             <p className="text-sm text-slate-700">{task.description || 'No description'}</p>
             <div className="mt-3 grid gap-2 text-sm text-slate-600 sm:grid-cols-2 lg:grid-cols-4">
+              <p>Client: {task.client_name || '-'}</p>
+              <p>Project: {task.project_name || '-'}</p>
               <p>Status: {task.status}</p>
               <p>Priority: {task.priority}</p>
               <p>Type: {task.task_type}</p>

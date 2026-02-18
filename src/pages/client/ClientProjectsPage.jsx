@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import AppShell from '../../components/layout/AppShell'
 import Card from '../../components/ui/Card'
 import PageState from '../../components/ui/PageState'
+import ClientTaskCreateCard from '../../components/tasks/ClientTaskCreateCard'
 import { NAV_BY_ROLE } from '../../lib/constants/navigation'
 import { USER_ROLES } from '../../lib/constants/roles'
 import { getProjects } from '../../lib/api/projects'
@@ -38,6 +39,9 @@ export default function ClientProjectsPage() {
 
   return (
     <AppShell title="Projects" navItems={NAV_BY_ROLE[USER_ROLES.CLIENT]}>
+      <ClientTaskCreateCard projects={projects} />
+
+      <div className="mt-4">
       <Card title="My Projects">
         {loading ? <PageState>Loading projects...</PageState> : null}
         {!loading && error ? <PageState>{error}</PageState> : null}
@@ -55,6 +59,7 @@ export default function ClientProjectsPage() {
           </ul>
         ) : null}
       </Card>
+      </div>
     </AppShell>
   )
 }

@@ -10,8 +10,11 @@ use App\Core\Request;
 use App\Core\Response;
 use App\Policies\ProjectPolicy;
 use App\Policies\TaskPolicy;
+use App\Services\NotificationService;
+use App\Services\TaskNotificationService;
 use App\Validators\ApiValidator;
 use PDO;
+use Throwable;
 
 final class TaskController extends BaseController
 {
@@ -63,13 +66,14 @@ final class TaskController extends BaseController
             $bind[':to'] = $dateTo;
         }
 
-        $sql = 'SELECT t.id, t.project_id, p.client_id, p.name AS project_name,
+        $sql = 'SELECT t.id, t.project_id, p.client_id, c.name AS client_name, p.name AS project_name,
                        t.created_by_user_id, t.assigned_to_user_id,
                        t.title, t.description, t.status, t.priority, t.task_type,
                        t.billable, t.estimated_hours, t.hourly_rate_override, t.actual_hours_override,
                        t.invoice_status, t.opened_at, t.closed_at, t.created_at, t.updated_at
                 FROM tasks t
                 INNER JOIN projects p ON p.id = t.project_id
+                INNER JOIN clients c ON c.id = p.client_id
                 WHERE ' . implode(' AND ', $where) . '
                 ORDER BY t.created_at DESC';
 
@@ -91,13 +95,14 @@ final class TaskController extends BaseController
         }
 
         $stmt = Database::connection()->prepare(
-            'SELECT t.id, t.project_id, p.client_id, p.name AS project_name,
+            'SELECT t.id, t.project_id, p.client_id, c.name AS client_name, p.name AS project_name,
                     t.created_by_user_id, t.assigned_to_user_id,
                     t.title, t.description, t.status, t.priority, t.task_type,
                     t.billable, t.estimated_hours, t.hourly_rate_override, t.actual_hours_override,
                     t.invoice_status, t.opened_at, t.closed_at, t.created_at, t.updated_at
              FROM tasks t
              INNER JOIN projects p ON p.id = t.project_id
+             INNER JOIN clients c ON c.id = p.client_id
              WHERE t.id = :id AND t.deleted_at IS NULL
              LIMIT 1'
         );
@@ -174,7 +179,29 @@ final class TaskController extends BaseController
             ':invoice_status' => $invoiceStatus,
         ]);
 
-        return Response::json(['data' => ['id' => (int) Database::connection()->lastInsertId()]], 201);
+        $taskId = (int) Database::connection()->lastInsertId();
+
+        try {
+            (new TaskNotificationService())->sendTaskCreated($taskId);
+        } catch (Throwable) {
+            // Notification errors must not block task creation.
+        }
+
+        if (($user['role'] ?? '') === 'admin') {
+            try {
+                (new NotificationService())->notifyClientUsersForTask(
+                    $taskId,
+                    (int) $user['id'],
+                    'task_updated',
+                    'New task created',
+                    'Admin created a new task on your project.'
+                );
+            } catch (Throwable) {
+                // Notification errors must not block task creation.
+            }
+        }
+
+        return Response::json(['data' => ['id' => $taskId]], 201);
     }
 
     public function update(Request $request, array $params): Response
@@ -264,7 +291,36 @@ final class TaskController extends BaseController
         $stmt = Database::connection()->prepare($sql);
         $stmt->execute($bind);
 
-        return Response::json(['data' => ['updated' => $stmt->rowCount() > 0]]);
+        $updated = $stmt->rowCount() > 0;
+
+        if ($updated && ($user['role'] ?? '') === 'admin') {
+            try {
+                if (array_key_exists('status', $input)) {
+                    $statusValue = (string) ($bind[':status'] ?? '');
+                    (new NotificationService())->notifyClientUsersForTask(
+                        $id,
+                        (int) $user['id'],
+                        'task_status_changed',
+                        'Task status changed',
+                        $statusValue !== ''
+                            ? 'Admin changed task status to "' . $statusValue . '".'
+                            : 'Admin changed task status.'
+                    );
+                } else {
+                    (new NotificationService())->notifyClientUsersForTask(
+                        $id,
+                        (int) $user['id'],
+                        'task_updated',
+                        'Task updated',
+                        'Admin updated your task details.'
+                    );
+                }
+            } catch (Throwable) {
+                // Notification errors must not block task update.
+            }
+        }
+
+        return Response::json(['data' => ['updated' => $updated]]);
     }
 
     public function updateStatus(Request $request, array $params): Response
@@ -288,7 +344,23 @@ final class TaskController extends BaseController
             ':status_done' => $status === 'done' ? 1 : 0,
         ]);
 
-        return Response::json(['data' => ['updated' => $stmt->rowCount() > 0]]);
+        $updated = $stmt->rowCount() > 0;
+
+        if ($updated) {
+            try {
+                (new NotificationService())->notifyClientUsersForTask(
+                    $id,
+                    (int) $user['id'],
+                    'task_status_changed',
+                    'Task status changed',
+                    'Admin changed task status to "' . $status . '".'
+                );
+            } catch (Throwable) {
+                // Notification errors must not block status update.
+            }
+        }
+
+        return Response::json(['data' => ['updated' => $updated]]);
     }
 
     public function destroy(Request $request, array $params): Response

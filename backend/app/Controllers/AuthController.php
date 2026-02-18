@@ -10,6 +10,7 @@ use App\Core\Database;
 use App\Core\Request;
 use App\Core\Response;
 use App\Core\SessionManager;
+use App\Services\AuthThrottleService;
 use App\Validators\ApiValidator;
 
 final class AuthController extends BaseController
@@ -22,14 +23,33 @@ final class AuthController extends BaseController
 
         $email = ApiValidator::requiredString($request->input('email'), 'email', 190);
         $password = ApiValidator::requiredString($request->input('password'), 'password', 255);
+        $ip = $request->ip();
+        $throttle = new AuthThrottleService();
+
+        $blockedUntil = $throttle->blockedUntil($email, $ip);
+        if ($blockedUntil !== null) {
+            $retryAfter = max(1, $blockedUntil - time());
+
+            return Response::json([
+                'error' => 'too_many_attempts',
+                'message' => 'Too many login attempts. Please try again later.',
+                'retry_after_seconds' => $retryAfter,
+            ], 429, [
+                'Retry-After' => (string) $retryAfter,
+            ]);
+        }
 
         $user = Auth::login($email, $password);
         if ($user === null) {
+            $throttle->recordFailure($email, $ip);
+
             return Response::json([
                 'error' => 'invalid_credentials',
                 'message' => 'Invalid email or password.',
             ], 401);
         }
+
+        $throttle->clear($email, $ip);
 
         $stmt = Database::connection()->prepare('UPDATE users SET last_login_at = NOW() WHERE id = :id');
         $stmt->execute([':id' => $user['id']]);
