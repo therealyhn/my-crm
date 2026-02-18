@@ -10,6 +10,10 @@ export function getCsrfToken() {
   return csrfToken
 }
 
+export function getApiBaseUrl() {
+  return API_BASE_URL
+}
+
 export class ApiError extends Error {
   constructor(message, { status = 500, code = 'api_error', details = null } = {}) {
     super(message)

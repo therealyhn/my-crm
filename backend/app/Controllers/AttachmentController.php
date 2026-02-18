@@ -15,6 +15,27 @@ use PDO;
 
 final class AttachmentController extends BaseController
 {
+    public function indexByTask(Request $request, array $params): Response
+    {
+        unset($request);
+        $user = $this->currentUser();
+        $taskId = ApiValidator::requiredInt($params['id'] ?? null, 'task_id');
+
+        if (!(new TaskPolicy())->canAccessTask($user, $taskId)) {
+            throw new HttpException(403, 'forbidden', 'You cannot access attachments for this task.');
+        }
+
+        $stmt = Database::connection()->prepare(
+            'SELECT id, task_id, uploaded_by_user_id, original_name, mime_type, size_bytes, created_at
+             FROM attachments
+             WHERE task_id = :task_id
+             ORDER BY created_at DESC'
+        );
+        $stmt->execute([':task_id' => $taskId]);
+
+        return Response::json(['data' => $stmt->fetchAll(PDO::FETCH_ASSOC)]);
+    }
+
     public function store(Request $request, array $params): Response
     {
         unset($request);

@@ -125,7 +125,10 @@ final class TaskController extends BaseController
         $title = ApiValidator::requiredString($request->input('title'), 'title', 220);
         $description = ApiValidator::optionalString($request->input('description'), 'description', 65535);
         $priority = ApiValidator::optionalEnum($request->input('priority'), 'priority', ['low', 'medium', 'high', 'urgent']) ?? 'medium';
-        $taskType = ApiValidator::requiredEnum($request->input('task_type'), 'task_type', ['bugfix', 'implementation', 'new_feature', 'maintenance']);
+        $allowedTaskTypes = ($user['role'] ?? '') === 'admin'
+            ? ['bugfix', 'implementation', 'new_feature', 'maintenance']
+            : ['bugfix', 'implementation', 'maintenance'];
+        $taskType = ApiValidator::requiredEnum($request->input('task_type'), 'task_type', $allowedTaskTypes);
         $billable = ApiValidator::optionalBool($request->input('billable'), 'billable');
 
         $status = ($user['role'] ?? '') === 'admin'

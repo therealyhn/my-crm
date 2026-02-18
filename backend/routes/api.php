@@ -43,6 +43,7 @@ $router->delete('/api/tasks/{id}', [TaskController::class, 'destroy'], [AuthMidd
 $router->get('/api/tasks/{id}/comments', [CommentController::class, 'index'], [AuthMiddleware::class]);
 $router->post('/api/tasks/{id}/comments', [CommentController::class, 'store'], [AuthMiddleware::class, CsrfMiddleware::class]);
 
+$router->get('/api/tasks/{id}/attachments', [AttachmentController::class, 'indexByTask'], [AuthMiddleware::class]);
 $router->post('/api/tasks/{id}/attachments', [AttachmentController::class, 'store'], [AuthMiddleware::class, CsrfMiddleware::class]);
 $router->get('/api/attachments/{id}', [AttachmentController::class, 'show'], [AuthMiddleware::class]);
 $router->delete('/api/attachments/{id}', [AttachmentController::class, 'destroy'], [AuthMiddleware::class, CsrfMiddleware::class]);
