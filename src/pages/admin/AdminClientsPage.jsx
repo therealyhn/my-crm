@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import AppShell from '../../components/layout/AppShell'
 import Button from '../../components/ui/Button'
 import Card from '../../components/ui/Card'
@@ -6,7 +7,8 @@ import Input from '../../components/ui/Input'
 import PageState from '../../components/ui/PageState'
 import { NAV_BY_ROLE } from '../../lib/constants/navigation'
 import { USER_ROLES } from '../../lib/constants/roles'
-import { createClient, deleteClient, getClients } from '../../lib/api/clients'
+import { createClient, deleteClient, getClientOverview, getClients, updateClient } from '../../lib/api/clients'
+import { formatDate } from '../../lib/utils/format'
 
 const INITIAL_FORM = {
   name: '',
@@ -42,6 +44,12 @@ export default function AdminClientsPage() {
   const [showHosting, setShowHosting] = useState(false)
   const [showCms, setShowCms] = useState(false)
   const [showNotes, setShowNotes] = useState(false)
+  const [overviewTarget, setOverviewTarget] = useState(null)
+  const [overviewData, setOverviewData] = useState(null)
+  const [overviewLoading, setOverviewLoading] = useState(false)
+  const [isEditingOverview, setIsEditingOverview] = useState(false)
+  const [savingOverview, setSavingOverview] = useState(false)
+  const [overviewForm, setOverviewForm] = useState(null)
 
   async function loadClients() {
     setLoading(true)
@@ -89,6 +97,42 @@ export default function AdminClientsPage() {
       setError(requestError?.message || 'Failed to delete client.')
     } finally {
       setDeleting(false)
+    }
+  }
+
+  async function handleOpenOverview(client) {
+    setOverviewTarget(client)
+    setOverviewLoading(true)
+    setOverviewData(null)
+    setIsEditingOverview(false)
+    setOverviewForm(null)
+    try {
+      const data = await getClientOverview(client.id)
+      setOverviewData(data)
+    } catch (requestError) {
+      setError(requestError?.message || 'Failed to load client details.')
+    } finally {
+      setOverviewLoading(false)
+    }
+  }
+
+  async function handleSaveOverview() {
+    if (!overviewTarget || !overviewForm) return
+    setSavingOverview(true)
+    try {
+      await updateClient(overviewTarget.id, {
+        ...overviewForm,
+        default_hourly_rate: overviewForm.default_hourly_rate === '' ? null : Number(overviewForm.default_hourly_rate),
+      })
+
+      await loadClients()
+      const refreshed = await getClientOverview(overviewTarget.id)
+      setOverviewData(refreshed)
+      setIsEditingOverview(false)
+    } catch (requestError) {
+      setError(requestError?.message || 'Failed to update client info.')
+    } finally {
+      setSavingOverview(false)
     }
   }
 
@@ -179,20 +223,185 @@ export default function AdminClientsPage() {
                     <p className="text-slate-600">{client.company_name || '-'}</p>
                     <p className="text-slate-500">{client.email || '-'}</p>
                   </div>
-                  <Button
-                    type="button"
-                    onClick={() => setDeleteTarget(client)}
-                    className="px-2 py-1 text-xs"
-                    variant="danger"
-                  >
-                    Delete
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      type="button"
+                      onClick={() => handleOpenOverview(client)}
+                      className="px-2 py-1 text-xs"
+                      variant="ghost"
+                    >
+                      View
+                    </Button>
+                    <Button
+                      type="button"
+                      onClick={() => setDeleteTarget(client)}
+                      className="px-2 py-1 text-xs"
+                      variant="danger"
+                    >
+                      Delete
+                    </Button>
+                  </div>
                 </li>
               ))}
             </ul>
           ) : null}
         </Card>
       </div>
+
+      {overviewTarget ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 px-4">
+          <div className="max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-sm border border-border bg-surface p-4 shadow-frame">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <h3 className="font-display text-h3 text-text">{overviewTarget.name}</h3>
+                <p className="text-sm text-slate-500">Client overview</p>
+              </div>
+              <div className="flex items-center gap-2">
+                {!isEditingOverview ? (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    onClick={() => {
+                      const client = overviewData?.client
+                      if (!client) return
+                      setOverviewForm({
+                        name: client.name || '',
+                        company_name: client.company_name || '',
+                        email: client.email || '',
+                        phone: client.phone || '',
+                        instagram: client.instagram || '',
+                        domain_main: client.domain_main || '',
+                        hosting_provider: client.hosting_provider || '',
+                        hosting_panel_url: client.hosting_panel_url || '',
+                        hosting_login: client.hosting_login || '',
+                        hosting_password: client.hosting_password || '',
+                        github_url: client.github_url || '',
+                        cms_org_name: client.cms_org_name || '',
+                        cms_org_id: client.cms_org_id || '',
+                        cms_project_name: client.cms_project_name || '',
+                        cms_url: client.cms_url || '',
+                        cms_app_id: client.cms_app_id || '',
+                        notes: client.notes || '',
+                        default_hourly_rate: client.default_hourly_rate || '',
+                        is_active: Number(client.is_active || 1) === 1,
+                      })
+                      setIsEditingOverview(true)
+                    }}
+                  >
+                    Edit
+                  </Button>
+                ) : (
+                  <>
+                    <Button type="button" variant="ghost" disabled={savingOverview} onClick={() => setIsEditingOverview(false)}>
+                      Cancel
+                    </Button>
+                    <Button type="button" disabled={savingOverview} onClick={handleSaveOverview}>
+                      {savingOverview ? 'Saving...' : 'Save'}
+                    </Button>
+                  </>
+                )}
+                <Button type="button" variant="ghost" onClick={() => setOverviewTarget(null)}>
+                  Close
+                </Button>
+              </div>
+            </div>
+
+            {overviewLoading ? <PageState>Loading client details...</PageState> : null}
+            {!overviewLoading && !overviewData ? <PageState>No data found.</PageState> : null}
+            {!overviewLoading && overviewData ? (
+              <div className="mt-3 space-y-4">
+                <section className="rounded-sm border border-border bg-background p-3">
+                  <p className="mb-2 text-label font-semibold uppercase text-muted">Client Data</p>
+                  {!isEditingOverview ? (
+                    <>
+                      <div className="grid gap-2 text-sm text-slate-700 sm:grid-cols-2">
+                        <p><span className="font-medium text-slate-900">Company:</span> {overviewData.client?.company_name || '-'}</p>
+                        <p><span className="font-medium text-slate-900">Email:</span> {overviewData.client?.email || '-'}</p>
+                        <p><span className="font-medium text-slate-900">Phone:</span> {overviewData.client?.phone || '-'}</p>
+                        <p><span className="font-medium text-slate-900">Instagram:</span> {overviewData.client?.instagram || '-'}</p>
+                        <p><span className="font-medium text-slate-900">Domain:</span> {overviewData.client?.domain_main || '-'}</p>
+                        <p><span className="font-medium text-slate-900">Hosting:</span> {overviewData.client?.hosting_provider || '-'}</p>
+                        <p><span className="font-medium text-slate-900">Panel URL:</span> {overviewData.client?.hosting_panel_url || '-'}</p>
+                        <p><span className="font-medium text-slate-900">Hosting Login:</span> {overviewData.client?.hosting_login || '-'}</p>
+                        <p><span className="font-medium text-slate-900">Hosting Password:</span> {overviewData.client?.hosting_password || '-'}</p>
+                        <p><span className="font-medium text-slate-900">GitHub:</span> {overviewData.client?.github_url || '-'}</p>
+                        <p><span className="font-medium text-slate-900">CMS Org:</span> {overviewData.client?.cms_org_name || '-'}</p>
+                        <p><span className="font-medium text-slate-900">CMS Org ID:</span> {overviewData.client?.cms_org_id || '-'}</p>
+                        <p><span className="font-medium text-slate-900">CMS Project:</span> {overviewData.client?.cms_project_name || '-'}</p>
+                        <p><span className="font-medium text-slate-900">CMS URL:</span> {overviewData.client?.cms_url || '-'}</p>
+                        <p><span className="font-medium text-slate-900">CMS App ID:</span> {overviewData.client?.cms_app_id || '-'}</p>
+                        <p><span className="font-medium text-slate-900">Created:</span> {formatDate(overviewData.client?.created_at)}</p>
+                      </div>
+                      <p className="mt-2 text-sm text-slate-700"><span className="font-medium text-slate-900">Notes:</span> {overviewData.client?.notes || '-'}</p>
+                    </>
+                  ) : (
+                    <div className="grid gap-2 sm:grid-cols-2">
+                      <Input placeholder="Name" value={overviewForm?.name || ''} onChange={(event) => setOverviewForm((prev) => ({ ...prev, name: event.target.value }))} />
+                      <Input placeholder="Company" value={overviewForm?.company_name || ''} onChange={(event) => setOverviewForm((prev) => ({ ...prev, company_name: event.target.value }))} />
+                      <Input placeholder="Email" value={overviewForm?.email || ''} onChange={(event) => setOverviewForm((prev) => ({ ...prev, email: event.target.value }))} />
+                      <Input placeholder="Phone" value={overviewForm?.phone || ''} onChange={(event) => setOverviewForm((prev) => ({ ...prev, phone: event.target.value }))} />
+                      <Input placeholder="Instagram" value={overviewForm?.instagram || ''} onChange={(event) => setOverviewForm((prev) => ({ ...prev, instagram: event.target.value }))} />
+                      <Input placeholder="Domain" value={overviewForm?.domain_main || ''} onChange={(event) => setOverviewForm((prev) => ({ ...prev, domain_main: event.target.value }))} />
+                      <Input placeholder="Hosting provider" value={overviewForm?.hosting_provider || ''} onChange={(event) => setOverviewForm((prev) => ({ ...prev, hosting_provider: event.target.value }))} />
+                      <Input placeholder="Hosting panel URL" value={overviewForm?.hosting_panel_url || ''} onChange={(event) => setOverviewForm((prev) => ({ ...prev, hosting_panel_url: event.target.value }))} />
+                      <Input placeholder="Hosting login" value={overviewForm?.hosting_login || ''} onChange={(event) => setOverviewForm((prev) => ({ ...prev, hosting_login: event.target.value }))} />
+                      <Input placeholder="Hosting password" value={overviewForm?.hosting_password || ''} onChange={(event) => setOverviewForm((prev) => ({ ...prev, hosting_password: event.target.value }))} />
+                      <Input placeholder="GitHub URL" value={overviewForm?.github_url || ''} onChange={(event) => setOverviewForm((prev) => ({ ...prev, github_url: event.target.value }))} />
+                      <Input placeholder="CMS org" value={overviewForm?.cms_org_name || ''} onChange={(event) => setOverviewForm((prev) => ({ ...prev, cms_org_name: event.target.value }))} />
+                      <Input placeholder="CMS org ID" value={overviewForm?.cms_org_id || ''} onChange={(event) => setOverviewForm((prev) => ({ ...prev, cms_org_id: event.target.value }))} />
+                      <Input placeholder="CMS project" value={overviewForm?.cms_project_name || ''} onChange={(event) => setOverviewForm((prev) => ({ ...prev, cms_project_name: event.target.value }))} />
+                      <Input placeholder="CMS URL" value={overviewForm?.cms_url || ''} onChange={(event) => setOverviewForm((prev) => ({ ...prev, cms_url: event.target.value }))} />
+                      <Input placeholder="CMS app ID" value={overviewForm?.cms_app_id || ''} onChange={(event) => setOverviewForm((prev) => ({ ...prev, cms_app_id: event.target.value }))} />
+                      <Input placeholder="Hourly rate" type="number" min="0" step="0.01" value={overviewForm?.default_hourly_rate || ''} onChange={(event) => setOverviewForm((prev) => ({ ...prev, default_hourly_rate: event.target.value }))} />
+                      <label className="flex items-center gap-2 text-sm text-slate-700">
+                        <input type="checkbox" checked={!!overviewForm?.is_active} onChange={(event) => setOverviewForm((prev) => ({ ...prev, is_active: event.target.checked }))} />
+                        Active client
+                      </label>
+                      <textarea className="sm:col-span-2 w-full rounded-sm border border-slate-300 bg-white px-3 py-2 text-sm text-text transition-colors focus:border-accentSoft focus:outline-none focus:ring-2 focus:ring-slate-300" rows={3} placeholder="Notes" value={overviewForm?.notes || ''} onChange={(event) => setOverviewForm((prev) => ({ ...prev, notes: event.target.value }))} />
+                    </div>
+                  )}
+                </section>
+
+                <section className="rounded-sm border border-border bg-background p-3">
+                  <p className="mb-2 text-label font-semibold uppercase text-muted">Projects ({overviewData.projects?.length || 0})</p>
+                  {!overviewData.projects || overviewData.projects.length === 0 ? <p className="text-sm text-slate-500">No projects.</p> : (
+                    <ul className="space-y-2">
+                      {overviewData.projects.map((project) => (
+                        <li key={project.id} className="rounded-sm border border-slate-200 p-2 text-sm">
+                          <Link className="font-medium text-slate-900 hover:underline" to={`/admin/tasks?project_id=${project.id}`}>
+                            {project.name}
+                          </Link>
+                          <p className="text-slate-600">Status: {project.status}</p>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </section>
+
+                <section className="rounded-sm border border-border bg-background p-3">
+                  <p className="mb-2 text-label font-semibold uppercase text-muted">Tasks ({overviewData.tasks?.length || 0})</p>
+                  {!overviewData.tasks || overviewData.tasks.length === 0 ? <p className="text-sm text-slate-500">No tasks.</p> : (
+                    <ul className="space-y-2">
+                      {overviewData.tasks.map((task) => (
+                        <li key={task.id} className="rounded-sm border border-slate-200 p-2 text-sm">
+                          <div className="flex items-center justify-between gap-2">
+                            <Link className="font-medium text-slate-900 hover:underline" to={`/admin/tasks/${task.id}`}>
+                              {task.title}
+                            </Link>
+                            <p className="text-xs text-slate-500">{task.status}</p>
+                          </div>
+                          <p className="text-slate-600">Project: {task.project_name || '-'}</p>
+                          <p className="text-slate-500">Type: {task.task_type} | Priority: {task.priority}</p>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </section>
+              </div>
+            ) : null}
+          </div>
+        </div>
+      ) : null}
 
       {deleteTarget ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 px-4">

@@ -146,6 +146,61 @@ final class ClientController extends BaseController
         }
     }
 
+    public function overview(Request $request, array $params): Response
+    {
+        unset($request);
+        $user = $this->currentUser();
+        $this->ensureAdmin($user);
+
+        $id = ApiValidator::requiredInt($params['id'] ?? null, 'id');
+
+        $clientStmt = Database::connection()->prepare(
+            'SELECT id, name, company_name, email, phone, instagram, domain_main,
+                    hosting_provider, hosting_panel_url, hosting_login, hosting_password,
+                    github_url, cms_org_name, cms_org_id, cms_project_name, cms_url, cms_app_id,
+                    notes, default_hourly_rate, is_active, created_at, updated_at
+             FROM clients
+             WHERE id = :id
+             LIMIT 1'
+        );
+        $clientStmt->execute([':id' => $id]);
+        $client = $clientStmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!is_array($client)) {
+            throw new HttpException(404, 'not_found', 'Client not found.');
+        }
+
+        $projectsStmt = Database::connection()->prepare(
+            'SELECT id, client_id, name, description, domain_main, github_url,
+                    cms_org_name, cms_org_id, cms_project_name, cms_url, cms_app_id, notes,
+                    status, start_date, due_date, created_at, updated_at
+             FROM projects
+             WHERE client_id = :client_id
+             ORDER BY created_at DESC'
+        );
+        $projectsStmt->execute([':client_id' => $id]);
+        $projects = $projectsStmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $tasksStmt = Database::connection()->prepare(
+            'SELECT t.id, t.project_id, p.name AS project_name, t.title, t.description, t.status, t.priority,
+                    t.task_type, t.billable, t.invoice_status, t.created_at, t.updated_at
+             FROM tasks t
+             INNER JOIN projects p ON p.id = t.project_id
+             WHERE p.client_id = :client_id AND t.deleted_at IS NULL
+             ORDER BY t.created_at DESC'
+        );
+        $tasksStmt->execute([':client_id' => $id]);
+        $tasks = $tasksStmt->fetchAll(PDO::FETCH_ASSOC);
+
+        return Response::json([
+            'data' => [
+                'client' => $client,
+                'projects' => $projects,
+                'tasks' => $tasks,
+            ],
+        ]);
+    }
+
     public function update(Request $request, array $params): Response
     {
         $user = $this->currentUser();

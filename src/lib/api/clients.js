@@ -14,6 +14,20 @@ export async function createClient(input) {
   return payload?.data || null
 }
 
+export async function updateClient(id, input) {
+  const payload = await http(`/clients/${id}`, {
+    method: 'PUT',
+    body: input,
+    withCsrf: true,
+  })
+  return payload?.data || null
+}
+
+export async function getClientOverview(id) {
+  const payload = await http(`/clients/${id}/overview`)
+  return payload?.data || null
+}
+
 export async function deleteClient(id) {
   const payload = await http(`/clients/${id}`, {
     method: 'DELETE',
