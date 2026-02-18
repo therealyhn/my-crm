@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import AppShell from '../../components/layout/AppShell'
+import Button from '../../components/ui/Button'
 import Card from '../../components/ui/Card'
+import Input from '../../components/ui/Input'
 import PageState from '../../components/ui/PageState'
 import { NAV_BY_ROLE } from '../../lib/constants/navigation'
 import { USER_ROLES } from '../../lib/constants/roles'
@@ -79,21 +81,21 @@ export default function AdminClientsPage() {
       <div className="grid gap-4 lg:grid-cols-2">
         <Card title="Create Client">
           <form className="space-y-2" onSubmit={handleCreate}>
-            <input className="input-field" placeholder="Name" value={form.name} onChange={(event) => setForm((prev) => ({ ...prev, name: event.target.value }))} required />
-            <input className="input-field" placeholder="Company" value={form.company_name} onChange={(event) => setForm((prev) => ({ ...prev, company_name: event.target.value }))} />
-            <input className="input-field" placeholder="Email" type="email" value={form.email} onChange={(event) => setForm((prev) => ({ ...prev, email: event.target.value }))} />
-            <input className="input-field" placeholder="Phone" value={form.phone} onChange={(event) => setForm((prev) => ({ ...prev, phone: event.target.value }))} />
-            <input className="input-field" placeholder="Default hourly rate" type="number" min="0" step="0.01" value={form.default_hourly_rate} onChange={(event) => setForm((prev) => ({ ...prev, default_hourly_rate: event.target.value }))} />
+            <Input placeholder="Name" value={form.name} onChange={(event) => setForm((prev) => ({ ...prev, name: event.target.value }))} required />
+            <Input placeholder="Company" value={form.company_name} onChange={(event) => setForm((prev) => ({ ...prev, company_name: event.target.value }))} />
+            <Input placeholder="Email" type="email" value={form.email} onChange={(event) => setForm((prev) => ({ ...prev, email: event.target.value }))} />
+            <Input placeholder="Phone" value={form.phone} onChange={(event) => setForm((prev) => ({ ...prev, phone: event.target.value }))} />
+            <Input placeholder="Default hourly rate" type="number" min="0" step="0.01" value={form.default_hourly_rate} onChange={(event) => setForm((prev) => ({ ...prev, default_hourly_rate: event.target.value }))} />
             <div className="rounded-surface border border-border bg-background p-3">
               <p className="mb-2 text-label font-semibold uppercase text-muted">Client Login Credentials</p>
               <div className="space-y-2">
-                <input className="input-field" placeholder="Login email" type="email" value={form.login_email} onChange={(event) => setForm((prev) => ({ ...prev, login_email: event.target.value }))} required />
-                <input className="input-field" placeholder="Login password (min 6)" type="password" value={form.login_password} onChange={(event) => setForm((prev) => ({ ...prev, login_password: event.target.value }))} minLength={6} required />
+                <Input placeholder="Login email" type="email" value={form.login_email} onChange={(event) => setForm((prev) => ({ ...prev, login_email: event.target.value }))} required />
+                <Input placeholder="Login password (min 6)" type="password" value={form.login_password} onChange={(event) => setForm((prev) => ({ ...prev, login_password: event.target.value }))} minLength={6} required />
               </div>
             </div>
-            <button className="btn-primary" disabled={submitting} type="submit">
+            <Button disabled={submitting} type="submit">
               {submitting ? 'Saving...' : 'Create Client'}
-            </button>
+            </Button>
           </form>
         </Card>
 
@@ -110,13 +112,14 @@ export default function AdminClientsPage() {
                     <p className="text-slate-600">{client.company_name || '-'}</p>
                     <p className="text-slate-500">{client.email || '-'}</p>
                   </div>
-                  <button
+                  <Button
                     type="button"
                     onClick={() => setDeleteTarget(client)}
-                    className="btn-danger px-2 py-1 text-xs"
+                    className="px-2 py-1 text-xs"
+                    variant="danger"
                   >
                     Delete
-                  </button>
+                  </Button>
                 </li>
               ))}
             </ul>
@@ -126,28 +129,28 @@ export default function AdminClientsPage() {
 
       {deleteTarget ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 px-4">
-          <div className="panel-surface w-full max-w-sm p-4">
+          <div className="w-full max-w-sm rounded-sm border border-border bg-surface p-4 shadow-frame">
             <h3 className="font-display text-h3 text-text">Are you sure?</h3>
             <p className="mt-2 text-sm text-slate-600">
               Delete client <span className="font-medium text-slate-900">{deleteTarget.name}</span>? This will also delete related projects, tasks, comments, attachments and client users.
             </p>
             <div className="mt-4 flex justify-end gap-2">
-              <button
+              <Button
                 type="button"
                 onClick={() => setDeleteTarget(null)}
-                className="btn-ghost"
+                variant="ghost"
                 disabled={deleting}
               >
                 Cancel
-              </button>
-              <button
+              </Button>
+              <Button
                 type="button"
                 onClick={() => handleDelete(deleteTarget.id)}
-                className="btn-danger"
+                variant="danger"
                 disabled={deleting}
               >
                 {deleting ? 'Deleting...' : 'Delete'}
-              </button>
+              </Button>
             </div>
           </div>
         </div>

@@ -1,5 +1,6 @@
 import { NavLink } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
+import Button from '../ui/Button'
 
 function NavItem({ to, label }) {
   return (
@@ -35,20 +36,16 @@ export default function AppShell({ title, navItems = [], children }) {
               <h1 className="font-display text-h3 text-text">{title}</h1>
             </div>
             <div className="flex items-center gap-3 text-sm">
-              <span className="label-chip">
+              <span className="inline-flex items-center rounded-sm border border-slate-300 px-3 py-2 text-label font-semibold uppercase text-slate-600">
                 {user?.name} ({user?.role})
               </span>
-              <button
-                type="button"
-                onClick={logout}
-                className="btn-ghost"
-              >
+              <Button type="button" onClick={logout} variant="ghost">
                 Logout
-              </button>
+              </Button>
             </div>
           </div>
 
-          <div className="hairline" />
+          <div className="h-px w-full bg-slate-300/80" />
 
           {navItems.length > 0 ? (
             <nav className="flex flex-wrap gap-2">
