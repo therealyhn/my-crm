@@ -142,6 +142,11 @@ export default function AdminTaskDetailPage() {
     return (timeLogs || []).reduce((total, item) => total + Number(item.minutes || 0), 0) / 60
   }, [timeLogs])
 
+  function labelize(value) {
+    if (!value) return '-'
+    return String(value).replaceAll('_', ' ')
+  }
+
   return (
     <AppShell title="Task Details" navItems={NAV_BY_ROLE[USER_ROLES.ADMIN]}>
       {loading ? <PageState>Loading task...</PageState> : null}
@@ -149,18 +154,40 @@ export default function AdminTaskDetailPage() {
       {!loading && !error && task ? (
         <div className="space-y-4">
           <Card title={task.title}>
-            <p className="text-sm text-slate-700">{task.description || 'No description'}</p>
-            <div className="mt-3 grid gap-2 text-sm text-slate-600 sm:grid-cols-2 lg:grid-cols-4">
-              <p>Client: {task.client_name || '-'}</p>
-              <p>Project: {task.project_name || '-'}</p>
-              <p>Status: {task.status}</p>
-              <p>Priority: {task.priority}</p>
-              <p>Type: {task.task_type}</p>
-              <p>Invoice: {task.invoice_status}</p>
+            <div className="rounded-sm border border-slate-200 bg-white p-3">
+              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Description</p>
+              <p className="mt-1 text-sm leading-6 text-slate-800">{task.description || 'No description'}</p>
             </div>
-            <div className="mt-3">
-              <label className="mr-2 text-sm font-medium">Update status:</label>
-              <select className="rounded border border-slate-300 px-2 py-1 text-sm" value={task.status} onChange={handleStatusChange}>
+
+            <div className="mt-3 grid gap-2 sm:grid-cols-2">
+              <div className="rounded-sm border border-slate-200 bg-white p-3">
+                <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Client</p>
+                <p className="mt-1 text-sm font-medium text-slate-900">{task.client_name || '-'}</p>
+              </div>
+              <div className="rounded-sm border border-slate-200 bg-white p-3">
+                <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Project</p>
+                <p className="mt-1 text-sm font-medium text-slate-900">{task.project_name || '-'}</p>
+              </div>
+            </div>
+
+            <div className="mt-3 flex flex-wrap gap-2">
+              <span className="inline-flex items-center rounded-sm border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-800">
+                Status: {labelize(task.status)}
+              </span>
+              <span className="inline-flex items-center rounded-sm border border-orange-200 bg-orange-50 px-2.5 py-1 text-xs font-medium text-orange-800">
+                Priority: {labelize(task.priority)}
+              </span>
+              <span className="inline-flex items-center rounded-sm border border-sky-200 bg-sky-50 px-2.5 py-1 text-xs font-medium text-sky-800">
+                Type: {labelize(task.task_type)}
+              </span>
+              <span className="inline-flex items-center rounded-sm border border-indigo-200 bg-indigo-50 px-2.5 py-1 text-xs font-medium text-indigo-800">
+                Invoice: {labelize(task.invoice_status)}
+              </span>
+            </div>
+
+            <div className="mt-4 flex flex-wrap items-center gap-2">
+              <label className="text-sm font-medium text-slate-700">Update status:</label>
+              <select className="rounded-sm border border-slate-300 bg-white px-3 py-1.5 text-sm text-slate-800" value={task.status} onChange={handleStatusChange}>
                 <option value="draft">draft</option>
                 <option value="open">open</option>
                 <option value="in_progress">in_progress</option>
