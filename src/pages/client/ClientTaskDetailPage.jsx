@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import AppShell from '../../components/layout/AppShell'
 import CommentList from '../../components/comments/CommentList'
+import AttachmentList from '../../components/attachments/AttachmentList'
 import Card from '../../components/ui/Card'
 import PageState from '../../components/ui/PageState'
 import { createComment, getComments } from '../../lib/api/comments'
@@ -86,12 +87,27 @@ export default function ClientTaskDetailPage() {
       {!loading && !error && task ? (
         <div className="space-y-4">
           <Card title={task.title}>
-            <p className="text-sm text-slate-700">{task.description || 'No description'}</p>
-            <div className="mt-3 grid gap-2 text-sm text-slate-600 sm:grid-cols-2">
-              <p>Status: {task.status}</p>
-              <p>Priority: {task.priority}</p>
-              <p>Invoice status: {task.invoice_status}</p>
-              <p>Created: {formatDate(task.created_at)}</p>
+            <div className="space-y-3">
+              <p className="text-sm leading-relaxed text-slate-700">{task.description || 'No description'}</p>
+
+              <div className="flex flex-wrap gap-2">
+                <span className="inline-flex items-center rounded-sm border border-slate-300 bg-white px-2 py-1 text-xs font-semibold uppercase tracking-wide text-slate-700">
+                  Status: {task.status}
+                </span>
+                <span className="inline-flex items-center rounded-sm border border-slate-300 bg-white px-2 py-1 text-xs font-semibold uppercase tracking-wide text-slate-700">
+                  Priority: {task.priority}
+                </span>
+                <span className="inline-flex items-center rounded-sm border border-slate-300 bg-white px-2 py-1 text-xs font-semibold uppercase tracking-wide text-slate-700">
+                  Invoice: {task.invoice_status}
+                </span>
+              </div>
+
+              <div className="grid gap-2 text-sm text-slate-700 sm:grid-cols-2">
+                <p><span className="font-medium text-slate-900">Project:</span> {task.project_name || '-'}</p>
+                <p><span className="font-medium text-slate-900">Type:</span> {task.task_type || '-'}</p>
+                <p><span className="font-medium text-slate-900">Created:</span> {formatDate(task.created_at)}</p>
+                <p><span className="font-medium text-slate-900">Updated:</span> {formatDate(task.updated_at)}</p>
+              </div>
             </div>
           </Card>
 
@@ -107,19 +123,7 @@ export default function ClientTaskDetailPage() {
             <div className="mb-3">
               <input type="file" onChange={handleFileChange} className="text-sm" />
             </div>
-            {attachments.length === 0 ? <p className="text-sm text-slate-500">No attachments yet.</p> : null}
-            {attachments.length > 0 ? (
-              <ul className="space-y-2">
-                {attachments.map((attachment) => (
-                  <li key={attachment.id} className="rounded border border-slate-200 p-2 text-sm">
-                    <a className="font-medium text-slate-900 hover:underline" href={`${attachmentBase}/attachments/${attachment.id}`} target="_blank" rel="noreferrer">
-                      {attachment.original_name}
-                    </a>
-                    <p className="text-xs text-slate-500">{attachment.mime_type} - {formatDate(attachment.created_at)}</p>
-                  </li>
-                ))}
-              </ul>
-            ) : null}
+            <AttachmentList attachments={attachments} attachmentBase={attachmentBase} />
           </Card>
         </div>
       ) : null}

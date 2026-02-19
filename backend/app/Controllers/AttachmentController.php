@@ -28,10 +28,12 @@ final class AttachmentController extends BaseController
         }
 
         $stmt = Database::connection()->prepare(
-            'SELECT id, task_id, uploaded_by_user_id, original_name, mime_type, size_bytes, created_at
-             FROM attachments
+            'SELECT a.id, a.task_id, a.uploaded_by_user_id, a.original_name, a.mime_type, a.size_bytes, a.created_at,
+                    u.name AS uploaded_by_name, u.role AS uploaded_by_role
+             FROM attachments a
+             LEFT JOIN users u ON u.id = a.uploaded_by_user_id
              WHERE task_id = :task_id
-             ORDER BY created_at DESC'
+             ORDER BY a.created_at DESC'
         );
         $stmt->execute([':task_id' => $taskId]);
 

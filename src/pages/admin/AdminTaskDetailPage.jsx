@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import AppShell from '../../components/layout/AppShell'
 import CommentList from '../../components/comments/CommentList'
+import AttachmentList from '../../components/attachments/AttachmentList'
 import TimeLogList from '../../components/timelogs/TimeLogList'
 import Card from '../../components/ui/Card'
 import PageState from '../../components/ui/PageState'
@@ -12,7 +13,6 @@ import { USER_ROLES } from '../../lib/constants/roles'
 import { getApiBaseUrl } from '../../lib/api/http'
 import { getTaskById, updateTask, updateTaskStatus } from '../../lib/api/tasks'
 import { createTimeLog, getTimeLogs } from '../../lib/api/timelogs'
-import { formatDate } from '../../lib/utils/format'
 
 export default function AdminTaskDetailPage() {
   const { id } = useParams()
@@ -235,24 +235,7 @@ export default function AdminTaskDetailPage() {
               <input type="file" onChange={handleFileChange} className="text-sm" />
               <span className="text-xs text-slate-500">{uploading ? 'Uploading...' : ''}</span>
             </div>
-            {attachments.length === 0 ? <p className="text-sm text-slate-500">No attachments yet.</p> : null}
-            {attachments.length > 0 ? (
-              <ul className="space-y-2">
-                {attachments.map((attachment) => (
-                  <li key={attachment.id} className="flex items-center justify-between rounded border border-slate-200 p-2 text-sm">
-                    <div>
-                      <a className="font-medium text-slate-900 hover:underline" href={`${attachmentBase}/attachments/${attachment.id}`} target="_blank" rel="noreferrer">
-                        {attachment.original_name}
-                      </a>
-                      <p className="text-xs text-slate-500">{attachment.mime_type} - {formatDate(attachment.created_at)}</p>
-                    </div>
-                    <button type="button" onClick={() => handleDeleteAttachment(attachment.id)} className="rounded border border-slate-300 px-2 py-1 text-xs hover:bg-slate-100">
-                      Delete
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            ) : null}
+            <AttachmentList attachments={attachments} attachmentBase={attachmentBase} canDelete onDelete={handleDeleteAttachment} />
           </Card>
         </div>
       ) : null}
