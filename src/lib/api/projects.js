@@ -29,3 +29,12 @@ export async function createProject(input) {
   })
   return payload?.data || null
 }
+
+export async function updateProject(id, input) {
+  const payload = await http(`/projects/${id}`, {
+    method: 'PUT',
+    body: input,
+    withCsrf: true,
+  })
+  return payload?.data || null
+}

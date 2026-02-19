@@ -35,3 +35,12 @@ export async function me() {
   const payload = await http('/auth/me')
   return payload?.data?.user || null
 }
+
+export async function changePassword(input) {
+  const payload = await http('/auth/change-password', {
+    method: 'POST',
+    body: input,
+    withCsrf: true,
+  })
+  return payload?.data || null
+}

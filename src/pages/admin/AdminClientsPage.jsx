@@ -7,7 +7,7 @@ import Input from '../../components/ui/Input'
 import PageState from '../../components/ui/PageState'
 import { NAV_BY_ROLE } from '../../lib/constants/navigation'
 import { USER_ROLES } from '../../lib/constants/roles'
-import { createClient, deleteClient, getClientOverview, getClients, updateClient } from '../../lib/api/clients'
+import { createClient, deleteClient, getClientOverview, getClients, updateClient, updateClientCredentials } from '../../lib/api/clients'
 import { formatDate } from '../../lib/utils/format'
 
 const INITIAL_FORM = {
@@ -123,6 +123,12 @@ export default function AdminClientsPage() {
       await updateClient(overviewTarget.id, {
         ...overviewForm,
         default_hourly_rate: overviewForm.default_hourly_rate === '' ? null : Number(overviewForm.default_hourly_rate),
+      })
+
+      await updateClientCredentials(overviewTarget.id, {
+        login_email: overviewForm.login_email,
+        new_password: overviewForm.new_password || null,
+        is_active: overviewForm.login_is_active,
       })
 
       await loadClients()
@@ -284,6 +290,9 @@ export default function AdminClientsPage() {
                         notes: client.notes || '',
                         default_hourly_rate: client.default_hourly_rate || '',
                         is_active: Number(client.is_active || 1) === 1,
+                        login_email: overviewData?.credentials?.email || '',
+                        new_password: '',
+                        login_is_active: Number(overviewData?.credentials?.is_active || 1) === 1,
                       })
                       setIsEditingOverview(true)
                     }}
@@ -333,6 +342,11 @@ export default function AdminClientsPage() {
                         <p><span className="font-medium text-slate-900">Created:</span> {formatDate(overviewData.client?.created_at)}</p>
                       </div>
                       <p className="mt-2 text-sm text-slate-700"><span className="font-medium text-slate-900">Notes:</span> {overviewData.client?.notes || '-'}</p>
+                      <div className="mt-3 rounded-sm border border-slate-200 bg-white p-2 text-sm text-slate-700">
+                        <p><span className="font-medium text-slate-900">Login email:</span> {overviewData.credentials?.email || '-'}</p>
+                        <p className="mt-1"><span className="font-medium text-slate-900">Password:</span> hidden (security)</p>
+                        <p className="mt-1"><span className="font-medium text-slate-900">Last login:</span> {formatDate(overviewData.credentials?.last_login_at)}</p>
+                      </div>
                     </>
                   ) : (
                     <div className="grid gap-2 sm:grid-cols-2">
@@ -356,6 +370,12 @@ export default function AdminClientsPage() {
                       <label className="flex items-center gap-2 text-sm text-slate-700">
                         <input type="checkbox" checked={!!overviewForm?.is_active} onChange={(event) => setOverviewForm((prev) => ({ ...prev, is_active: event.target.checked }))} />
                         Active client
+                      </label>
+                      <Input placeholder="Login email" type="email" value={overviewForm?.login_email || ''} onChange={(event) => setOverviewForm((prev) => ({ ...prev, login_email: event.target.value }))} />
+                      <Input placeholder="Set new password (optional)" type="password" minLength={8} value={overviewForm?.new_password || ''} onChange={(event) => setOverviewForm((prev) => ({ ...prev, new_password: event.target.value }))} />
+                      <label className="flex items-center gap-2 text-sm text-slate-700 sm:col-span-2">
+                        <input type="checkbox" checked={!!overviewForm?.login_is_active} onChange={(event) => setOverviewForm((prev) => ({ ...prev, login_is_active: event.target.checked }))} />
+                        Login account active
                       </label>
                       <textarea className="sm:col-span-2 w-full rounded-sm border border-slate-300 bg-white px-3 py-2 text-sm text-text transition-colors focus:border-accentSoft focus:outline-none focus:ring-2 focus:ring-slate-300" rows={3} placeholder="Notes" value={overviewForm?.notes || ''} onChange={(event) => setOverviewForm((prev) => ({ ...prev, notes: event.target.value }))} />
                     </div>

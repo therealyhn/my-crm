@@ -192,11 +192,96 @@ final class ClientController extends BaseController
         $tasksStmt->execute([':client_id' => $id]);
         $tasks = $tasksStmt->fetchAll(PDO::FETCH_ASSOC);
 
+        $credentialsStmt = Database::connection()->prepare(
+            "SELECT id, email, is_active, created_at, updated_at, last_login_at
+             FROM users
+             WHERE client_id = :client_id AND role = 'client'
+             ORDER BY created_at ASC
+             LIMIT 1"
+        );
+        $credentialsStmt->execute([':client_id' => $id]);
+        $credentials = $credentialsStmt->fetch(PDO::FETCH_ASSOC) ?: null;
+
         return Response::json([
             'data' => [
                 'client' => $client,
                 'projects' => $projects,
                 'tasks' => $tasks,
+                'credentials' => $credentials,
+            ],
+        ]);
+    }
+
+    public function updateCredentials(Request $request, array $params): Response
+    {
+        $user = $this->currentUser();
+        $this->ensureAdmin($user);
+
+        $clientId = ApiValidator::requiredInt($params['id'] ?? null, 'id');
+        $loginEmail = ApiValidator::requiredString($request->input('login_email'), 'login_email', 190);
+        $newPassword = ApiValidator::optionalString($request->input('new_password'), 'new_password', 255);
+        $isActive = ApiValidator::optionalBool($request->input('is_active'), 'is_active');
+
+        if (!filter_var($loginEmail, FILTER_VALIDATE_EMAIL)) {
+            throw new HttpException(422, 'validation_error', 'login_email must be a valid email.');
+        }
+
+        if ($newPassword !== null && mb_strlen($newPassword) < 8) {
+            throw new HttpException(422, 'validation_error', 'new_password must be at least 8 characters.');
+        }
+
+        $pdo = Database::connection();
+
+        $clientUserStmt = $pdo->prepare(
+            "SELECT id, email
+             FROM users
+             WHERE client_id = :client_id AND role = 'client'
+             ORDER BY created_at ASC
+             LIMIT 1"
+        );
+        $clientUserStmt->execute([':client_id' => $clientId]);
+        $clientUser = $clientUserStmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!is_array($clientUser)) {
+            throw new HttpException(404, 'not_found', 'Client login user not found.');
+        }
+
+        $userId = (int) $clientUser['id'];
+
+        $existsStmt = $pdo->prepare(
+            'SELECT id FROM users WHERE email = :email AND id <> :id LIMIT 1'
+        );
+        $existsStmt->execute([
+            ':email' => $loginEmail,
+            ':id' => $userId,
+        ]);
+        if ($existsStmt->fetch(PDO::FETCH_ASSOC)) {
+            throw new HttpException(409, 'conflict', 'A user with this login_email already exists.');
+        }
+
+        $updates = ['email = :email'];
+        $bind = [
+            ':id' => $userId,
+            ':email' => $loginEmail,
+        ];
+
+        if ($newPassword !== null && $newPassword !== '') {
+            $updates[] = 'password_hash = :password_hash';
+            $bind[':password_hash'] = password_hash($newPassword, PASSWORD_DEFAULT);
+        }
+
+        if ($isActive !== null) {
+            $updates[] = 'is_active = :is_active';
+            $bind[':is_active'] = $isActive ? 1 : 0;
+        }
+
+        $sql = 'UPDATE users SET ' . implode(', ', $updates) . ', updated_at = CURRENT_TIMESTAMP WHERE id = :id';
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute($bind);
+
+        return Response::json([
+            'data' => [
+                'updated' => $stmt->rowCount() > 0,
             ],
         ]);
     }

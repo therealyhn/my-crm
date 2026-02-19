@@ -21,12 +21,14 @@ $router->get('/api/csrf-token', [SecurityController::class, 'csrfToken']);
 
 $router->post('/api/auth/login', [AuthController::class, 'login']);
 $router->post('/api/auth/logout', [AuthController::class, 'logout'], [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->post('/api/auth/change-password', [AuthController::class, 'changePassword'], [AuthMiddleware::class, CsrfMiddleware::class]);
 $router->get('/api/auth/me', [AuthController::class, 'me']);
 
 $router->get('/api/clients', [ClientController::class, 'index'], [AuthMiddleware::class]);
 $router->get('/api/clients/{id}/overview', [ClientController::class, 'overview'], [AuthMiddleware::class]);
 $router->post('/api/clients', [ClientController::class, 'store'], [AuthMiddleware::class, CsrfMiddleware::class]);
 $router->put('/api/clients/{id}', [ClientController::class, 'update'], [AuthMiddleware::class, CsrfMiddleware::class]);
+$router->put('/api/clients/{id}/credentials', [ClientController::class, 'updateCredentials'], [AuthMiddleware::class, CsrfMiddleware::class]);
 $router->delete('/api/clients/{id}', [ClientController::class, 'destroy'], [AuthMiddleware::class, CsrfMiddleware::class]);
 
 $router->get('/api/projects', [ProjectController::class, 'index'], [AuthMiddleware::class]);

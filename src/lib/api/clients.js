@@ -23,6 +23,15 @@ export async function updateClient(id, input) {
   return payload?.data || null
 }
 
+export async function updateClientCredentials(id, input) {
+  const payload = await http(`/clients/${id}/credentials`, {
+    method: 'PUT',
+    body: input,
+    withCsrf: true,
+  })
+  return payload?.data || null
+}
+
 export async function getClientOverview(id) {
   const payload = await http(`/clients/${id}/overview`)
   return payload?.data || null
