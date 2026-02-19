@@ -209,14 +209,6 @@ export default function AdminProjectsPage() {
                     <p><span className="font-medium text-slate-900">Client:</span> {overviewData.client_name || '-'}</p>
                     <p><span className="font-medium text-slate-900">Status:</span> {overviewData.status || '-'}</p>
                     <p><span className="font-medium text-slate-900">Domain:</span> {overviewData.domain_main || '-'}</p>
-                    <p><span className="font-medium text-slate-900">GitHub:</span> {overviewData.github_url || '-'}</p>
-                    <p><span className="font-medium text-slate-900">CMS Org:</span> {overviewData.cms_org_name || '-'}</p>
-                    <p><span className="font-medium text-slate-900">CMS Org ID:</span> {overviewData.cms_org_id || '-'}</p>
-                    <p><span className="font-medium text-slate-900">CMS Project:</span> {overviewData.cms_project_name || '-'}</p>
-                    <p><span className="font-medium text-slate-900">CMS URL:</span> {overviewData.cms_url || '-'}</p>
-                    <p><span className="font-medium text-slate-900">CMS App ID:</span> {overviewData.cms_app_id || '-'}</p>
-                    <p><span className="font-medium text-slate-900">Start date:</span> {overviewData.start_date || '-'}</p>
-                    <p><span className="font-medium text-slate-900">Due date:</span> {overviewData.due_date || '-'}</p>
                     <p><span className="font-medium text-slate-900">Created:</span> {formatDate(overviewData.created_at)}</p>
                     <p className="sm:col-span-2"><span className="font-medium text-slate-900">Description:</span> {overviewData.description || '-'}</p>
                     <p className="sm:col-span-2"><span className="font-medium text-slate-900">Notes:</span> {overviewData.notes || '-'}</p>

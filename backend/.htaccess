@@ -1,5 +1,16 @@
 RewriteEngine On
 
+# Never expose env/config/source files directly
+<FilesMatch "(^\.env($|\.)|^composer\.(json|lock)$|\.sql$|\.md$|\.log$|\.ini$)">
+  Require all denied
+</FilesMatch>
+
+# Block all hidden files/folders except .well-known
+RewriteRule "(^|/)\.(?!well-known/)" - [F,L]
+
+# Disable directory listing
+Options -Indexes
+
 # Route all API requests to backend/index.php
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
