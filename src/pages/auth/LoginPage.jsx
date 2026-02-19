@@ -30,6 +30,10 @@ export default function LoginPage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-slate-100 px-4">
       <div className="w-full max-w-md rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div className="mb-4 flex items-center gap-3">
+          <img src="/crm-logo.png" alt="Jovan Ljusic logo" className="h-16 w-auto" />
+          <p className="text-lg font-semibold uppercase tracking-wide text-slate-700">CRM Portal by Jovan Ljusic</p>
+        </div>
         <h1 className="text-xl font-semibold text-slate-900">Sign In</h1>
         <p className="mt-1 text-sm text-slate-600">Use your CRM account credentials.</p>
 
