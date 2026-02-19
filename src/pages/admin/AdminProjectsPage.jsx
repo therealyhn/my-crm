@@ -165,19 +165,10 @@ export default function AdminProjectsPage() {
                       if (!p) return
                       setOverviewForm({
                         client_id: String(p.client_id || ''),
-                        name: p.name || '',
-                        description: p.description || '',
-                        domain_main: p.domain_main || '',
-                        github_url: p.github_url || '',
-                        cms_org_name: p.cms_org_name || '',
-                        cms_org_id: p.cms_org_id || '',
-                        cms_project_name: p.cms_project_name || '',
-                        cms_url: p.cms_url || '',
-                        cms_app_id: p.cms_app_id || '',
-                        notes: p.notes || '',
                         status: p.status || 'active',
-                        start_date: p.start_date || '',
-                        due_date: p.due_date || '',
+                        domain_main: p.domain_main || '',
+                        description: p.description || '',
+                        notes: p.notes || '',
                       })
                       setIsEditingOverview(true)
                     }}
@@ -215,6 +206,9 @@ export default function AdminProjectsPage() {
                   </div>
                 ) : (
                   <div className="grid gap-2 sm:grid-cols-2">
+                    <p className="text-sm text-slate-600 sm:col-span-2">
+                      <span className="font-medium text-slate-900">Created:</span> {formatDate(overviewData.created_at)}
+                    </p>
                     <select className="w-full rounded border border-slate-300 px-3 py-2 text-sm" value={overviewForm?.client_id || ''} onChange={(event) => setOverviewForm((prev) => ({ ...prev, client_id: event.target.value }))}>
                       <option value="">Select client</option>
                       {clients.map((client) => (
@@ -228,16 +222,7 @@ export default function AdminProjectsPage() {
                       <option value="on_hold">on_hold</option>
                       <option value="archived">archived</option>
                     </select>
-                    <input className="w-full rounded border border-slate-300 px-3 py-2 text-sm" placeholder="Project name" value={overviewForm?.name || ''} onChange={(event) => setOverviewForm((prev) => ({ ...prev, name: event.target.value }))} />
                     <input className="w-full rounded border border-slate-300 px-3 py-2 text-sm" placeholder="Domain" value={overviewForm?.domain_main || ''} onChange={(event) => setOverviewForm((prev) => ({ ...prev, domain_main: event.target.value }))} />
-                    <input className="w-full rounded border border-slate-300 px-3 py-2 text-sm sm:col-span-2" placeholder="GitHub URL" value={overviewForm?.github_url || ''} onChange={(event) => setOverviewForm((prev) => ({ ...prev, github_url: event.target.value }))} />
-                    <input className="w-full rounded border border-slate-300 px-3 py-2 text-sm" placeholder="CMS org" value={overviewForm?.cms_org_name || ''} onChange={(event) => setOverviewForm((prev) => ({ ...prev, cms_org_name: event.target.value }))} />
-                    <input className="w-full rounded border border-slate-300 px-3 py-2 text-sm" placeholder="CMS org ID" value={overviewForm?.cms_org_id || ''} onChange={(event) => setOverviewForm((prev) => ({ ...prev, cms_org_id: event.target.value }))} />
-                    <input className="w-full rounded border border-slate-300 px-3 py-2 text-sm" placeholder="CMS project" value={overviewForm?.cms_project_name || ''} onChange={(event) => setOverviewForm((prev) => ({ ...prev, cms_project_name: event.target.value }))} />
-                    <input className="w-full rounded border border-slate-300 px-3 py-2 text-sm" placeholder="CMS app ID" value={overviewForm?.cms_app_id || ''} onChange={(event) => setOverviewForm((prev) => ({ ...prev, cms_app_id: event.target.value }))} />
-                    <input className="w-full rounded border border-slate-300 px-3 py-2 text-sm sm:col-span-2" placeholder="CMS URL" value={overviewForm?.cms_url || ''} onChange={(event) => setOverviewForm((prev) => ({ ...prev, cms_url: event.target.value }))} />
-                    <input className="w-full rounded border border-slate-300 px-3 py-2 text-sm" type="date" value={overviewForm?.start_date || ''} onChange={(event) => setOverviewForm((prev) => ({ ...prev, start_date: event.target.value }))} />
-                    <input className="w-full rounded border border-slate-300 px-3 py-2 text-sm" type="date" value={overviewForm?.due_date || ''} onChange={(event) => setOverviewForm((prev) => ({ ...prev, due_date: event.target.value }))} />
                     <textarea className="w-full rounded border border-slate-300 px-3 py-2 text-sm sm:col-span-2" rows={3} placeholder="Description" value={overviewForm?.description || ''} onChange={(event) => setOverviewForm((prev) => ({ ...prev, description: event.target.value }))} />
                     <textarea className="w-full rounded border border-slate-300 px-3 py-2 text-sm sm:col-span-2" rows={3} placeholder="Notes" value={overviewForm?.notes || ''} onChange={(event) => setOverviewForm((prev) => ({ ...prev, notes: event.target.value }))} />
                   </div>

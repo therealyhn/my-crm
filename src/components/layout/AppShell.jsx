@@ -71,7 +71,7 @@ export default function AppShell({ title, navItems = [], children }) {
             </div>
             <div className="flex items-center gap-3 text-sm">
               <span className="inline-flex items-center rounded-sm border border-slate-300 px-3 py-2 text-label font-semibold uppercase text-slate-600">
-                {user?.name} ({user?.role})
+                {user?.name}
               </span>
               <Button type="button" onClick={() => setShowPasswordModal(true)} variant="ghost">
                 Change Password

@@ -33,25 +33,80 @@ final class NotificationService
             'client_name' => (string) $task['client_name'],
         ], JSON_UNESCAPED_SLASHES);
 
-        $stmt = Database::connection()->prepare(
+        $genericTitle = 'Task updated';
+        $genericMessage = 'There are new changes on task "' . (string) $task['task_title'] . '".';
+
+        $insertStmt = Database::connection()->prepare(
             'INSERT INTO notifications
                 (user_id, client_id, task_id, actor_user_id, type, title, message, data_json, is_read)
              VALUES
                 (:user_id, :client_id, :task_id, :actor_user_id, :type, :title, :message, :data_json, 0)'
         );
 
+        $updateExistingStmt = Database::connection()->prepare(
+            'UPDATE notifications
+             SET actor_user_id = :actor_user_id,
+                 type = :type,
+                 title = :title,
+                 message = :message,
+                 data_json = :data_json,
+                 created_at = CURRENT_TIMESTAMP,
+                 is_read = 0,
+                 read_at = NULL
+             WHERE id = :id'
+        );
+
         foreach ($recipients as $recipientUserId) {
-            $stmt->execute([
+            $existingId = $this->findUnreadTaskNotificationId($recipientUserId, $taskId);
+            $bind = [
                 ':user_id' => $recipientUserId,
                 ':client_id' => (int) $task['client_id'],
                 ':task_id' => $taskId,
                 ':actor_user_id' => $actorUserId,
-                ':type' => $type,
-                ':title' => $title,
-                ':message' => $message,
+                ':type' => 'task_updated',
+                ':title' => $genericTitle,
+                ':message' => $genericMessage,
                 ':data_json' => $dataJson !== false ? $dataJson : null,
-            ]);
+            ];
+
+            if ($existingId !== null) {
+                $updateExistingStmt->execute([
+                    ':id' => $existingId,
+                    ':actor_user_id' => $bind[':actor_user_id'],
+                    ':type' => $bind[':type'],
+                    ':title' => $bind[':title'],
+                    ':message' => $bind[':message'],
+                    ':data_json' => $bind[':data_json'],
+                ]);
+                continue;
+            }
+
+            $insertStmt->execute($bind);
         }
+    }
+
+    private function findUnreadTaskNotificationId(int $userId, int $taskId): ?int
+    {
+        $stmt = Database::connection()->prepare(
+            'SELECT id
+             FROM notifications
+             WHERE user_id = :user_id
+               AND task_id = :task_id
+               AND is_read = 0
+             ORDER BY created_at DESC
+             LIMIT 1'
+        );
+        $stmt->execute([
+            ':user_id' => $userId,
+            ':task_id' => $taskId,
+        ]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!is_array($row)) {
+            return null;
+        }
+
+        return (int) ($row['id'] ?? 0) ?: null;
     }
 
     private function taskContext(int $taskId): ?array
