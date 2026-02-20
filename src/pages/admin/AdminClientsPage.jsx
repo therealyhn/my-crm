@@ -28,7 +28,6 @@ const INITIAL_FORM = {
   cms_url: '',
   cms_app_id: '',
   notes: '',
-  default_hourly_rate: '',
   login_email: '',
   login_password: '',
 }
@@ -73,10 +72,7 @@ export default function AdminClientsPage() {
     setSubmitting(true)
     setError('')
     try {
-      await createClient({
-        ...form,
-        default_hourly_rate: form.default_hourly_rate === '' ? null : Number(form.default_hourly_rate),
-      })
+      await createClient(form)
       setForm(INITIAL_FORM)
       await loadClients()
     } catch (requestError) {
@@ -120,10 +116,7 @@ export default function AdminClientsPage() {
     if (!overviewTarget || !overviewForm) return
     setSavingOverview(true)
     try {
-      await updateClient(overviewTarget.id, {
-        ...overviewForm,
-        default_hourly_rate: overviewForm.default_hourly_rate === '' ? null : Number(overviewForm.default_hourly_rate),
-      })
+      await updateClient(overviewTarget.id, overviewForm)
 
       await updateClientCredentials(overviewTarget.id, {
         login_email: overviewForm.login_email,
@@ -155,7 +148,6 @@ export default function AdminClientsPage() {
                 <Input placeholder="Email" type="email" value={form.email} onChange={(event) => setForm((prev) => ({ ...prev, email: event.target.value }))} />
                 <Input placeholder="Phone" value={form.phone} onChange={(event) => setForm((prev) => ({ ...prev, phone: event.target.value }))} />
                 <Input placeholder="Instagram" value={form.instagram} onChange={(event) => setForm((prev) => ({ ...prev, instagram: event.target.value }))} />
-                <Input placeholder="Default hourly rate (EUR)" type="number" min="0" step="0.01" value={form.default_hourly_rate} onChange={(event) => setForm((prev) => ({ ...prev, default_hourly_rate: event.target.value }))} />
               </div>
             </div>
 
@@ -288,7 +280,6 @@ export default function AdminClientsPage() {
                         cms_url: client.cms_url || '',
                         cms_app_id: client.cms_app_id || '',
                         notes: client.notes || '',
-                        default_hourly_rate: client.default_hourly_rate || '',
                         is_active: Number(client.is_active || 1) === 1,
                         login_email: overviewData?.credentials?.email || '',
                         new_password: '',
@@ -366,7 +357,6 @@ export default function AdminClientsPage() {
                       <Input placeholder="CMS project" value={overviewForm?.cms_project_name || ''} onChange={(event) => setOverviewForm((prev) => ({ ...prev, cms_project_name: event.target.value }))} />
                       <Input placeholder="CMS URL" value={overviewForm?.cms_url || ''} onChange={(event) => setOverviewForm((prev) => ({ ...prev, cms_url: event.target.value }))} />
                       <Input placeholder="CMS app ID" value={overviewForm?.cms_app_id || ''} onChange={(event) => setOverviewForm((prev) => ({ ...prev, cms_app_id: event.target.value }))} />
-                      <Input placeholder="Hourly rate" type="number" min="0" step="0.01" value={overviewForm?.default_hourly_rate || ''} onChange={(event) => setOverviewForm((prev) => ({ ...prev, default_hourly_rate: event.target.value }))} />
                       <label className="flex items-center gap-2 text-sm text-slate-700">
                         <input type="checkbox" checked={!!overviewForm?.is_active} onChange={(event) => setOverviewForm((prev) => ({ ...prev, is_active: event.target.checked }))} />
                         Active client

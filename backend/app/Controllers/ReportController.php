@@ -68,14 +68,14 @@ final class ReportController extends BaseController
                     ELSE COALESCE(tl.actual_hours, 0)
                 END
             ), 0) AS actual_hours_total,
-            COALESCE(SUM(COALESCE(t.estimated_hours, 0) * COALESCE(t.hourly_rate_override, c.default_hourly_rate, 0)), 0) AS estimated_cost_total,
+            COALESCE(SUM(COALESCE(t.estimated_hours, 0) * COALESCE(t.hourly_rate_override, 0)), 0) AS estimated_cost_total,
             COALESCE(SUM(
                 (
                     CASE
                         WHEN t.actual_hours_override IS NOT NULL THEN t.actual_hours_override
                         ELSE COALESCE(tl.actual_hours, 0)
                     END
-                ) * COALESCE(t.hourly_rate_override, c.default_hourly_rate, 0)
+                ) * COALESCE(t.hourly_rate_override, 0)
             ), 0) AS actual_cost_total
             FROM tasks t
             INNER JOIN projects p ON p.id = t.project_id
@@ -105,14 +105,14 @@ final class ReportController extends BaseController
                     ELSE COALESCE(tl.actual_hours, 0)
                 END
             ), 0) AS actual_hours,
-            COALESCE(SUM(COALESCE(t.estimated_hours, 0) * COALESCE(t.hourly_rate_override, c.default_hourly_rate, 0)), 0) AS estimated_cost,
+            COALESCE(SUM(COALESCE(t.estimated_hours, 0) * COALESCE(t.hourly_rate_override, 0)), 0) AS estimated_cost,
             COALESCE(SUM(
                 (
                     CASE
                         WHEN t.actual_hours_override IS NOT NULL THEN t.actual_hours_override
                         ELSE COALESCE(tl.actual_hours, 0)
                     END
-                ) * COALESCE(t.hourly_rate_override, c.default_hourly_rate, 0)
+                ) * COALESCE(t.hourly_rate_override, 0)
             ), 0) AS actual_cost
             FROM tasks t
             INNER JOIN projects p ON p.id = t.project_id

@@ -11,7 +11,7 @@ import { NAV_BY_ROLE } from '../../lib/constants/navigation'
 import { USER_ROLES } from '../../lib/constants/roles'
 import { getApiBaseUrl } from '../../lib/api/http'
 import { getTaskById } from '../../lib/api/tasks'
-import { formatDate } from '../../lib/utils/format'
+import { formatCurrency, formatDate } from '../../lib/utils/format'
 
 export default function ClientTaskDetailPage() {
   const { id } = useParams()
@@ -80,6 +80,36 @@ export default function ClientTaskDetailPage() {
     }
   }
 
+  function labelize(value) {
+    if (!value) return '-'
+    return String(value).replaceAll('_', ' ')
+  }
+
+  function badgeTone(kind, value) {
+    if (kind === 'status') {
+      if (value === 'done') return 'border-emerald-200 bg-emerald-50 text-emerald-800'
+      if (value === 'in_progress') return 'border-blue-200 bg-blue-50 text-blue-800'
+      if (value === 'waiting_client') return 'border-amber-200 bg-amber-50 text-amber-800'
+      if (value === 'cancelled') return 'border-rose-200 bg-rose-50 text-rose-800'
+      return 'border-slate-300 bg-white text-slate-700'
+    }
+
+    if (kind === 'priority') {
+      if (value === 'urgent') return 'border-rose-200 bg-rose-50 text-rose-800'
+      if (value === 'high') return 'border-orange-200 bg-orange-50 text-orange-800'
+      if (value === 'medium') return 'border-amber-200 bg-amber-50 text-amber-800'
+      return 'border-slate-300 bg-white text-slate-700'
+    }
+
+    if (kind === 'invoice') {
+      if (value === 'paid') return 'border-emerald-200 bg-emerald-50 text-emerald-800'
+      if (value === 'sent') return 'border-sky-200 bg-sky-50 text-sky-800'
+      return 'border-slate-300 bg-white text-slate-700'
+    }
+
+    return 'border-slate-300 bg-white text-slate-700'
+  }
+
   return (
     <AppShell title="Task Details" navItems={NAV_BY_ROLE[USER_ROLES.CLIENT]}>
       {loading ? <PageState>Loading task...</PageState> : null}
@@ -91,21 +121,42 @@ export default function ClientTaskDetailPage() {
               <p className="text-sm leading-relaxed text-slate-700">{task.description || 'No description'}</p>
 
               <div className="flex flex-wrap gap-2">
-                <span className="inline-flex items-center rounded-sm border border-slate-300 bg-white px-2 py-1 text-xs font-semibold uppercase tracking-wide text-slate-700">
-                  Status: {task.status}
+                <span className={`inline-flex items-center rounded-sm border px-2.5 py-1 text-xs font-semibold uppercase tracking-wide ${badgeTone('status', task.status)}`}>
+                  Status: {labelize(task.status)}
                 </span>
-                <span className="inline-flex items-center rounded-sm border border-slate-300 bg-white px-2 py-1 text-xs font-semibold uppercase tracking-wide text-slate-700">
-                  Priority: {task.priority}
+                <span className={`inline-flex items-center rounded-sm border px-2.5 py-1 text-xs font-semibold uppercase tracking-wide ${badgeTone('priority', task.priority)}`}>
+                  Priority: {labelize(task.priority)}
                 </span>
-                <span className="inline-flex items-center rounded-sm border border-slate-300 bg-white px-2 py-1 text-xs font-semibold uppercase tracking-wide text-slate-700">
-                  Invoice: {task.invoice_status}
+                <span className={`inline-flex items-center rounded-sm border px-2.5 py-1 text-xs font-semibold uppercase tracking-wide ${badgeTone('invoice', task.invoice_status)}`}>
+                  Invoice: {labelize(task.invoice_status)}
+                </span>
+                <span className="inline-flex items-center rounded-sm border border-violet-200 bg-violet-50 px-2.5 py-1 text-xs font-semibold uppercase tracking-wide text-violet-800">
+                  Type: {labelize(task.task_type)}
                 </span>
               </div>
 
+              <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+                <div className="rounded-sm border border-slate-200 bg-white p-3">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Estimated Hours</p>
+                  <p className="mt-1 text-sm font-semibold text-slate-900">{task.estimated_hours ?? '-'}</p>
+                </div>
+                <div className="rounded-sm border border-slate-200 bg-white p-3">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Hourly Rate</p>
+                  <p className="mt-1 text-sm font-semibold text-slate-900">
+                    {task.hourly_rate_override !== null && task.hourly_rate_override !== undefined ? formatCurrency(task.hourly_rate_override) : '-'}
+                  </p>
+                </div>
+                <div className="rounded-sm border border-slate-200 bg-white p-3">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Project</p>
+                  <p className="mt-1 text-sm font-semibold text-slate-900">{task.project_name || '-'}</p>
+                </div>
+                <div className="rounded-sm border border-slate-200 bg-white p-3">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Created</p>
+                  <p className="mt-1 text-sm font-semibold text-slate-900">{formatDate(task.created_at)}</p>
+                </div>
+              </div>
+
               <div className="grid gap-2 text-sm text-slate-700 sm:grid-cols-2">
-                <p><span className="font-medium text-slate-900">Project:</span> {task.project_name || '-'}</p>
-                <p><span className="font-medium text-slate-900">Type:</span> {task.task_type || '-'}</p>
-                <p><span className="font-medium text-slate-900">Created:</span> {formatDate(task.created_at)}</p>
                 <p><span className="font-medium text-slate-900">Updated:</span> {formatDate(task.updated_at)}</p>
               </div>
             </div>

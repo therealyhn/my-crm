@@ -24,7 +24,7 @@ final class ClientController extends BaseController
             'SELECT id, name, company_name, email, phone, instagram, domain_main,
                     hosting_provider, hosting_panel_url, hosting_login, hosting_password,
                     github_url, cms_org_name, cms_org_id, cms_project_name, cms_url, cms_app_id,
-                    notes, default_hourly_rate, is_active, created_at, updated_at
+                    notes, is_active, created_at, updated_at
              FROM clients
              ORDER BY created_at DESC'
         )->fetchAll(PDO::FETCH_ASSOC);
@@ -55,7 +55,6 @@ final class ClientController extends BaseController
         $cmsUrl = ApiValidator::optionalString($request->input('cms_url'), 'cms_url', 500);
         $cmsAppId = ApiValidator::optionalString($request->input('cms_app_id'), 'cms_app_id', 190);
         $notes = ApiValidator::optionalString($request->input('notes'), 'notes', 65535);
-        $defaultHourlyRate = ApiValidator::optionalDecimal($request->input('default_hourly_rate'), 'default_hourly_rate', 0) ?? 0;
         $isActive = ApiValidator::optionalBool($request->input('is_active'), 'is_active');
         $loginEmail = ApiValidator::requiredString($request->input('login_email'), 'login_email', 190);
         $loginPassword = ApiValidator::requiredString($request->input('login_password'), 'login_password', 255);
@@ -88,13 +87,13 @@ final class ClientController extends BaseController
                     name, company_name, email, phone, instagram, domain_main,
                     hosting_provider, hosting_panel_url, hosting_login, hosting_password,
                     github_url, cms_org_name, cms_org_id, cms_project_name, cms_url, cms_app_id, notes,
-                    default_hourly_rate, is_active
+                    is_active
                  )
                  VALUES (
                     :name, :company_name, :email, :phone, :instagram, :domain_main,
                     :hosting_provider, :hosting_panel_url, :hosting_login, :hosting_password,
                     :github_url, :cms_org_name, :cms_org_id, :cms_project_name, :cms_url, :cms_app_id, :notes,
-                    :default_hourly_rate, :is_active
+                    :is_active
                  )'
             );
             $stmt->execute([
@@ -115,7 +114,6 @@ final class ClientController extends BaseController
                 ':cms_url' => $cmsUrl,
                 ':cms_app_id' => $cmsAppId,
                 ':notes' => $notes,
-                ':default_hourly_rate' => number_format($defaultHourlyRate, 2, '.', ''),
                 ':is_active' => $isActive === null ? 1 : ($isActive ? 1 : 0),
             ]);
 
@@ -158,7 +156,7 @@ final class ClientController extends BaseController
             'SELECT id, name, company_name, email, phone, instagram, domain_main,
                     hosting_provider, hosting_panel_url, hosting_login, hosting_password,
                     github_url, cms_org_name, cms_org_id, cms_project_name, cms_url, cms_app_id,
-                    notes, default_hourly_rate, is_active, created_at, updated_at
+                    notes, is_active, created_at, updated_at
              FROM clients
              WHERE id = :id
              LIMIT 1'
@@ -309,7 +307,6 @@ final class ClientController extends BaseController
         $cmsUrl = ApiValidator::optionalString($request->input('cms_url'), 'cms_url', 500);
         $cmsAppId = ApiValidator::optionalString($request->input('cms_app_id'), 'cms_app_id', 190);
         $notes = ApiValidator::optionalString($request->input('notes'), 'notes', 65535);
-        $defaultHourlyRate = ApiValidator::optionalDecimal($request->input('default_hourly_rate'), 'default_hourly_rate', 0) ?? 0;
         $isActive = ApiValidator::optionalBool($request->input('is_active'), 'is_active');
 
         if ($email !== null && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
@@ -335,7 +332,6 @@ final class ClientController extends BaseController
                  cms_url = :cms_url,
                  cms_app_id = :cms_app_id,
                  notes = :notes,
-                 default_hourly_rate = :default_hourly_rate,
                  is_active = :is_active
              WHERE id = :id'
         );
@@ -358,7 +354,6 @@ final class ClientController extends BaseController
             ':cms_url' => $cmsUrl,
             ':cms_app_id' => $cmsAppId,
             ':notes' => $notes,
-            ':default_hourly_rate' => number_format($defaultHourlyRate, 2, '.', ''),
             ':is_active' => $isActive === null ? 1 : ($isActive ? 1 : 0),
         ]);
 
