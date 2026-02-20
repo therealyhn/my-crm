@@ -117,6 +117,9 @@ export default function ClientTaskDetailPage() {
 
   const isCompletedTask = task?.status === 'done' || task?.status === 'cancelled'
   const actualHoursTotal = timeLogs.reduce((sum, item) => sum + ((Number(item.minutes) || 0) / 60), 0)
+  const hourlyRate = Number(task?.hourly_rate_override)
+  const hasHourlyRate = task?.hourly_rate_override !== null && task?.hourly_rate_override !== undefined && !Number.isNaN(hourlyRate)
+  const actualPayable = isCompletedTask && hasHourlyRate ? actualHoursTotal * hourlyRate : null
 
   return (
     <AppShell title="Task Details" navItems={NAV_BY_ROLE[USER_ROLES.CLIENT]}>
@@ -143,7 +146,7 @@ export default function ClientTaskDetailPage() {
                 </span>
               </div>
 
-              <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
                 <div className="rounded-sm border border-slate-200 bg-white p-3">
                   <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Estimated Hours</p>
                   <p className="mt-1 text-sm font-semibold text-slate-900">{task.estimated_hours ?? '-'}</p>
@@ -162,6 +165,14 @@ export default function ClientTaskDetailPage() {
                 <div className="rounded-sm border border-slate-200 bg-white p-3">
                   <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Project</p>
                   <p className="mt-1 text-sm font-semibold text-slate-900">{task.project_name || '-'}</p>
+                </div>
+                <div className="rounded-sm border border-slate-200 bg-white p-3">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Amount Due</p>
+                  <p className="mt-1 text-sm font-semibold text-slate-900">
+                    {isCompletedTask
+                      ? (task.billable ? (actualPayable !== null ? formatCurrency(actualPayable) : '-') : 'Non-billable')
+                      : '-'}
+                  </p>
                 </div>
               </div>
 
