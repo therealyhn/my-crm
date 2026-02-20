@@ -21,21 +21,32 @@ export default function TaskTable({ tasks, detailBasePath }) {
           </tr>
         </thead>
         <tbody>
-          {tasks.map((task) => (
-            <tr key={task.id} className="border-b border-slate-100 text-slate-700">
-              <td className="px-2 py-2">
-                <Link className="font-medium text-slate-900 hover:underline" to={`${detailBasePath}/${task.id}`}>
-                  {task.title}
-                </Link>
-              </td>
-              <td className="px-2 py-2">{task.project_name || '-'}</td>
-              <td className="px-2 py-2">{task.status}</td>
-              <td className="px-2 py-2">{task.task_type}</td>
-              <td className="px-2 py-2">{formatHours(task.estimated_hours)}</td>
-              <td className="px-2 py-2">{task.invoice_status}</td>
-              <td className="px-2 py-2">{formatDate(task.created_at)}</td>
-            </tr>
-          ))}
+          {tasks.map((task) => {
+            const isFullyCompleted = ['done', 'cancelled'].includes(task.status) && task.invoice_status === 'paid'
+
+            return (
+              <tr key={task.id} className="border-b border-slate-100 text-slate-700">
+                <td className="px-2 py-2">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Link className="font-medium text-slate-900 hover:underline" to={`${detailBasePath}/${task.id}`}>
+                      {task.title}
+                    </Link>
+                    {isFullyCompleted ? (
+                      <span className="inline-flex items-center rounded-sm border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-emerald-800">
+                        Completed
+                      </span>
+                    ) : null}
+                  </div>
+                </td>
+                <td className="px-2 py-2">{task.project_name || '-'}</td>
+                <td className="px-2 py-2">{task.status}</td>
+                <td className="px-2 py-2">{task.task_type}</td>
+                <td className="px-2 py-2">{formatHours(task.estimated_hours)}</td>
+                <td className="px-2 py-2">{task.invoice_status}</td>
+                <td className="px-2 py-2">{formatDate(task.created_at)}</td>
+              </tr>
+            )
+          })}
         </tbody>
       </table>
     </div>

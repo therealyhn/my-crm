@@ -116,6 +116,7 @@ export default function ClientTaskDetailPage() {
   }
 
   const isCompletedTask = task?.status === 'done' || task?.status === 'cancelled'
+  const isFullyCompleted = isCompletedTask && task?.invoice_status === 'paid'
   const actualHoursTotal = timeLogs.reduce((sum, item) => sum + ((Number(item.minutes) || 0) / 60), 0)
   const hourlyRate = Number(task?.hourly_rate_override)
   const hasHourlyRate = task?.hourly_rate_override !== null && task?.hourly_rate_override !== undefined && !Number.isNaN(hourlyRate)
@@ -144,6 +145,11 @@ export default function ClientTaskDetailPage() {
                 <span className="inline-flex items-center rounded-sm border border-violet-200 bg-violet-50 px-2.5 py-1 text-xs font-semibold uppercase tracking-wide text-violet-800">
                   Type: {labelize(task.task_type)}
                 </span>
+                {isFullyCompleted ? (
+                  <span className="inline-flex items-center rounded-sm border border-emerald-300 bg-emerald-100 px-2.5 py-1 text-xs font-semibold uppercase tracking-wide text-emerald-900">
+                    Fully Completed
+                  </span>
+                ) : null}
               </div>
 
               <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-5">

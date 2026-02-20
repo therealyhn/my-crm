@@ -141,6 +141,7 @@ export default function AdminTaskDetailPage() {
   const timeLoggedHours = useMemo(() => {
     return (timeLogs || []).reduce((total, item) => total + Number(item.minutes || 0), 0) / 60
   }, [timeLogs])
+  const isFullyCompleted = ['done', 'cancelled'].includes(task?.status) && task?.invoice_status === 'paid'
 
   function labelize(value) {
     if (!value) return '-'
@@ -183,6 +184,11 @@ export default function AdminTaskDetailPage() {
               <span className="inline-flex items-center rounded-sm border border-indigo-200 bg-indigo-50 px-2.5 py-1 text-xs font-medium text-indigo-800">
                 Invoice: {labelize(task.invoice_status)}
               </span>
+              {isFullyCompleted ? (
+                <span className="inline-flex items-center rounded-sm border border-emerald-300 bg-emerald-100 px-2.5 py-1 text-xs font-semibold uppercase tracking-wide text-emerald-900">
+                  Fully Completed
+                </span>
+              ) : null}
             </div>
 
             <div className="mt-4 flex flex-wrap items-center gap-2">
