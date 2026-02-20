@@ -23,6 +23,7 @@ final class Config
             'session_secure' => Env::bool('SESSION_SECURE', false),
             'session_samesite' => Env::get('SESSION_SAMESITE', 'Lax'),
             'max_upload_mb' => Env::int('MAX_UPLOAD_MB', 10),
+            'attachment_max_upload_mb' => Env::int('ATTACHMENT_MAX_UPLOAD_MB', 2),
             'mail_from_address' => Env::get('MAIL_FROM_ADDRESS', 'noreply@localhost'),
             'mail_from_name' => Env::get('MAIL_FROM_NAME', 'Client CRM Portal'),
             'notify_client_task_update_emails' => Env::bool('NOTIFY_CLIENT_TASK_UPDATE_EMAILS', true),
