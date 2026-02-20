@@ -9,6 +9,7 @@ use App\Core\HttpException;
 use App\Core\Request;
 use App\Core\Response;
 use App\Policies\TaskPolicy;
+use App\Services\ClientTaskEmailService;
 use App\Services\NotificationService;
 use App\Validators\ApiValidator;
 use PDO;
@@ -75,6 +76,16 @@ final class TimeLogController extends BaseController
                 );
             } catch (Throwable) {
                 // Notification errors must not block time log creation.
+            }
+
+            try {
+                (new ClientTaskEmailService())->sendAdminTaskUpdate(
+                    $taskId,
+                    (int) $user['id'],
+                    'timelog_added'
+                );
+            } catch (Throwable) {
+                // Email errors must not block time log creation.
             }
         }
 
@@ -151,6 +162,16 @@ final class TimeLogController extends BaseController
             } catch (Throwable) {
                 // Notification errors must not block time log update.
             }
+
+            try {
+                (new ClientTaskEmailService())->sendAdminTaskUpdate(
+                    (int) $timeLog['task_id'],
+                    (int) $user['id'],
+                    'timelog_updated'
+                );
+            } catch (Throwable) {
+                // Email errors must not block time log update.
+            }
         }
 
         return Response::json(['data' => ['updated' => $updated]]);
@@ -201,6 +222,16 @@ final class TimeLogController extends BaseController
                 );
             } catch (Throwable) {
                 // Notification errors must not block time log deletion.
+            }
+
+            try {
+                (new ClientTaskEmailService())->sendAdminTaskUpdate(
+                    (int) $timeLog['task_id'],
+                    (int) $user['id'],
+                    'timelog_deleted'
+                );
+            } catch (Throwable) {
+                // Email errors must not block time log deletion.
             }
         }
 

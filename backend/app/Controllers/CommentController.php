@@ -9,6 +9,7 @@ use App\Core\HttpException;
 use App\Core\Request;
 use App\Core\Response;
 use App\Policies\TaskPolicy;
+use App\Services\ClientTaskEmailService;
 use App\Services\NotificationService;
 use App\Validators\ApiValidator;
 use PDO;
@@ -71,6 +72,16 @@ final class CommentController extends BaseController
                 );
             } catch (Throwable) {
                 // Notification errors must not block comment creation.
+            }
+
+            try {
+                (new ClientTaskEmailService())->sendAdminTaskUpdate(
+                    $taskId,
+                    (int) $user['id'],
+                    'comment_added'
+                );
+            } catch (Throwable) {
+                // Email errors must not block comment creation.
             }
         }
 

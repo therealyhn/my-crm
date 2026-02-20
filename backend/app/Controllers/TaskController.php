@@ -10,6 +10,7 @@ use App\Core\Request;
 use App\Core\Response;
 use App\Policies\ProjectPolicy;
 use App\Policies\TaskPolicy;
+use App\Services\ClientTaskEmailService;
 use App\Services\NotificationService;
 use App\Services\TaskNotificationService;
 use App\Validators\ApiValidator;
@@ -199,6 +200,16 @@ final class TaskController extends BaseController
             } catch (Throwable) {
                 // Notification errors must not block task creation.
             }
+
+            try {
+                (new ClientTaskEmailService())->sendAdminTaskUpdate(
+                    $taskId,
+                    (int) $user['id'],
+                    'task_created'
+                );
+            } catch (Throwable) {
+                // Email errors must not block task creation.
+            }
         }
 
         return Response::json(['data' => ['id' => $taskId]], 201);
@@ -318,6 +329,16 @@ final class TaskController extends BaseController
             } catch (Throwable) {
                 // Notification errors must not block task update.
             }
+
+            try {
+                (new ClientTaskEmailService())->sendAdminTaskUpdate(
+                    $id,
+                    (int) $user['id'],
+                    array_key_exists('status', $input) ? 'task_status_changed' : 'task_updated'
+                );
+            } catch (Throwable) {
+                // Email errors must not block task update.
+            }
         }
 
         return Response::json(['data' => ['updated' => $updated]]);
@@ -357,6 +378,16 @@ final class TaskController extends BaseController
                 );
             } catch (Throwable) {
                 // Notification errors must not block status update.
+            }
+
+            try {
+                (new ClientTaskEmailService())->sendAdminTaskUpdate(
+                    $id,
+                    (int) $user['id'],
+                    'task_status_changed'
+                );
+            } catch (Throwable) {
+                // Email errors must not block status update.
             }
         }
 

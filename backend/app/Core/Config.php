@@ -9,7 +9,7 @@ final class Config
     public static function app(): array
     {
         $allowedOrigins = array_values(array_filter(array_map(
-            static fn (string $origin): string => trim($origin),
+            static fn(string $origin): string => trim($origin),
             explode(',', Env::get('CORS_ALLOWED_ORIGIN', ''))
         )));
 
@@ -25,8 +25,10 @@ final class Config
             'max_upload_mb' => Env::int('MAX_UPLOAD_MB', 10),
             'mail_from_address' => Env::get('MAIL_FROM_ADDRESS', 'noreply@localhost'),
             'mail_from_name' => Env::get('MAIL_FROM_NAME', 'Client CRM Portal'),
+            'notify_client_task_update_emails' => Env::bool('NOTIFY_CLIENT_TASK_UPDATE_EMAILS', true),
+            'client_task_update_email_cooldown_seconds' => Env::int('CLIENT_TASK_UPDATE_EMAIL_COOLDOWN_SECONDS', 900),
             'notify_new_task_emails' => array_values(array_filter(array_map(
-                static fn (string $value): string => trim($value),
+                static fn(string $value): string => trim($value),
                 explode(',', Env::get('NOTIFY_NEW_TASK_EMAILS', ''))
             ))),
             'auth_login_window_seconds' => Env::int('AUTH_LOGIN_WINDOW_SECONDS', 900),

@@ -10,6 +10,7 @@ use App\Core\HttpException;
 use App\Core\Request;
 use App\Core\Response;
 use App\Policies\TaskPolicy;
+use App\Services\ClientTaskEmailService;
 use App\Services\NotificationService;
 use App\Validators\ApiValidator;
 use PDO;
@@ -131,6 +132,16 @@ final class AttachmentController extends BaseController
             } catch (Throwable) {
                 // Notification errors must not block attachment upload.
             }
+
+            try {
+                (new ClientTaskEmailService())->sendAdminTaskUpdate(
+                    $taskId,
+                    (int) $user['id'],
+                    'attachment_added'
+                );
+            } catch (Throwable) {
+                // Email errors must not block attachment upload.
+            }
         }
 
         return Response::json(['data' => ['id' => (int) Database::connection()->lastInsertId()]], 201);
@@ -228,6 +239,16 @@ final class AttachmentController extends BaseController
                 );
             } catch (Throwable) {
                 // Notification errors must not block attachment deletion.
+            }
+
+            try {
+                (new ClientTaskEmailService())->sendAdminTaskUpdate(
+                    (int) $attachment['task_id'],
+                    (int) $user['id'],
+                    'attachment_deleted'
+                );
+            } catch (Throwable) {
+                // Email errors must not block attachment deletion.
             }
         }
 
