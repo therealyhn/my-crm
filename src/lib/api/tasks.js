@@ -47,3 +47,11 @@ export async function updateTaskStatus(id, status) {
   })
   return payload?.data || null
 }
+
+export async function deleteTask(id) {
+  const payload = await http(`/tasks/${id}`, {
+    method: 'DELETE',
+    withCsrf: true,
+  })
+  return payload?.data || null
+}
