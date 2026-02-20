@@ -60,7 +60,7 @@ final class AttachmentController extends BaseController
             throw new HttpException(422, 'upload_error', 'Upload failed.');
         }
 
-        $maxBytes = Config::app()['max_upload_mb'] * 1024 * 1024;
+        $maxBytes = Config::app()['attachment_max_upload_mb'] * 1024 * 1024;
         $size = (int) ($file['size'] ?? 0);
         if ($size <= 0 || $size > $maxBytes) {
             throw new HttpException(422, 'validation_error', 'File size is invalid.');
