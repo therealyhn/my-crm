@@ -40,6 +40,7 @@ The app is built as a self-hosted solution (no paid SaaS dependency) with:
 - Add comments and upload attachments
 - Track task status, updates, and history
 - View unread notifications when admin updates tasks
+- Receive email notifications when admin updates task status/details/comments/attachments/time logs
 - Change own password
 
 ### Admin Area
