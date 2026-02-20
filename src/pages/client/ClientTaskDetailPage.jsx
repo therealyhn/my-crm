@@ -11,7 +11,8 @@ import { NAV_BY_ROLE } from '../../lib/constants/navigation'
 import { USER_ROLES } from '../../lib/constants/roles'
 import { getApiBaseUrl } from '../../lib/api/http'
 import { getTaskById } from '../../lib/api/tasks'
-import { formatCurrency, formatDate } from '../../lib/utils/format'
+import { getTimeLogs } from '../../lib/api/timelogs'
+import { formatCurrency, formatDate, formatHours } from '../../lib/utils/format'
 
 export default function ClientTaskDetailPage() {
   const { id } = useParams()
@@ -20,6 +21,7 @@ export default function ClientTaskDetailPage() {
   const [task, setTask] = useState(null)
   const [comments, setComments] = useState([])
   const [attachments, setAttachments] = useState([])
+  const [timeLogs, setTimeLogs] = useState([])
   const [commentBody, setCommentBody] = useState('')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -35,9 +37,12 @@ export default function ClientTaskDetailPage() {
         getComments(taskId),
         getAttachments(taskId),
       ])
+      const shouldShowTimeLogs = taskData?.status === 'done' || taskData?.status === 'cancelled'
+      const timeLogData = shouldShowTimeLogs ? await getTimeLogs(taskId) : []
       setTask(taskData)
       setComments(commentsData)
       setAttachments(attachmentData)
+      setTimeLogs(timeLogData)
     } catch (requestError) {
       setError(requestError?.message || 'Failed to load task details.')
     } finally {
@@ -110,6 +115,9 @@ export default function ClientTaskDetailPage() {
     return 'border-slate-300 bg-white text-slate-700'
   }
 
+  const isCompletedTask = task?.status === 'done' || task?.status === 'cancelled'
+  const actualHoursTotal = timeLogs.reduce((sum, item) => sum + ((Number(item.minutes) || 0) / 60), 0)
+
   return (
     <AppShell title="Task Details" navItems={NAV_BY_ROLE[USER_ROLES.CLIENT]}>
       {loading ? <PageState>Loading task...</PageState> : null}
@@ -139,6 +147,11 @@ export default function ClientTaskDetailPage() {
                 <div className="rounded-sm border border-slate-200 bg-white p-3">
                   <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Estimated Hours</p>
                   <p className="mt-1 text-sm font-semibold text-slate-900">{task.estimated_hours ?? '-'}</p>
+                  <p className="mt-1 text-xs text-slate-500">Approximate only. Final hours show after completion.</p>
+                </div>
+                <div className="rounded-sm border border-slate-200 bg-white p-3">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Actual Hours</p>
+                  <p className="mt-1 text-sm font-semibold text-slate-900">{isCompletedTask ? formatHours(actualHoursTotal) : '-'}</p>
                 </div>
                 <div className="rounded-sm border border-slate-200 bg-white p-3">
                   <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Hourly Rate</p>
@@ -150,13 +163,10 @@ export default function ClientTaskDetailPage() {
                   <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Project</p>
                   <p className="mt-1 text-sm font-semibold text-slate-900">{task.project_name || '-'}</p>
                 </div>
-                <div className="rounded-sm border border-slate-200 bg-white p-3">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Created</p>
-                  <p className="mt-1 text-sm font-semibold text-slate-900">{formatDate(task.created_at)}</p>
-                </div>
               </div>
 
               <div className="grid gap-2 text-sm text-slate-700 sm:grid-cols-2">
+                <p><span className="font-medium text-slate-900">Created:</span> {formatDate(task.created_at)}</p>
                 <p><span className="font-medium text-slate-900">Updated:</span> {formatDate(task.updated_at)}</p>
               </div>
             </div>
@@ -176,6 +186,27 @@ export default function ClientTaskDetailPage() {
             </div>
             <AttachmentList attachments={attachments} attachmentBase={attachmentBase} />
           </Card>
+
+          {isCompletedTask ? (
+            <Card title="Time Logs">
+              {timeLogs.length === 0 ? (
+                <p className="text-sm text-slate-500">No time logs recorded.</p>
+              ) : (
+                <ul className="space-y-2">
+                  {timeLogs.map((item) => (
+                    <li key={item.id} className="rounded-sm border border-slate-200 bg-white p-3 text-sm">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <p className="font-medium text-slate-900">{item.user_name || 'User'}</p>
+                        <p className="text-slate-700">{formatHours((Number(item.minutes) || 0) / 60)} h</p>
+                      </div>
+                      <p className="mt-1 text-slate-700">{item.note || 'No note'}</p>
+                      <p className="mt-1 text-xs text-slate-500">{formatDate(item.log_date)}</p>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </Card>
+          ) : null}
         </div>
       ) : null}
     </AppShell>
